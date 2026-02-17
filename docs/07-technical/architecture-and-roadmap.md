@@ -102,7 +102,6 @@ Shifted from PWA-first (v1) to React Native via Expo. Reasons:
 - Apple Health / Google Fit integration
 - Seasonal tower events
 - Pet cosmetic shop
-- Import from Strong/Hevy via CSV/API
 - AI integration (Battle Advisor + Workout Coach)
 
 ---

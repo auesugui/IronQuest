@@ -41,7 +41,7 @@ The following are **future expansion ideas** noted in the docs (not blocking dec
 | PvP async matchmaking | Phase 4+ | Requires Supabase + stable meta |
 | Apple Health / Google Fit integration | Phase 4+ | Passive activity bonuses |
 | Seasonal tower events | Phase 4+ | Time-limited rewards + themed enemies |
-| Import from Strong/Hevy (CSV/API) | Phase 4+ | Contradicts A4 decision, but reconsidered post-launch |
+| AI Battle Advisor | Phase 4+ | Post-battle analysis + tips |
 
 ---
 
