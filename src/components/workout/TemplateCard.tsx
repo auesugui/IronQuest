@@ -1,0 +1,157 @@
+// =============================================================================
+// IronQuest Template Card Component
+// =============================================================================
+
+import React from 'react';
+import { View, Text, StyleSheet, Pressable } from 'react-native';
+import { colors, spacing, textStyles, radius } from '@/theme';
+import { RadarChart } from '@/components/progress/RadarChart';
+import { haptics } from '@/utils/haptics';
+import type { WorkoutTemplateDefinition } from '@/data';
+
+interface TemplateCardProps {
+  template: WorkoutTemplateDefinition;
+  onPress: () => void;
+}
+
+const DIFFICULTY_COLORS = {
+  beginner: colors.stats.vigor,
+  intermediate: colors.stats.speed,
+  advanced: colors.stats.power,
+};
+
+export function TemplateCard({ template, onPress }: TemplateCardProps) {
+  const handlePress = () => {
+    haptics.tap();
+    onPress();
+  };
+
+  return (
+    <Pressable style={styles.card} onPress={handlePress}>
+      <View style={styles.header}>
+        <View style={styles.titleRow}>
+          <Text style={styles.name}>{template.name}</Text>
+          <View
+            style={[
+              styles.difficultyBadge,
+              { backgroundColor: DIFFICULTY_COLORS[template.difficulty] + '20' },
+            ]}
+          >
+            <Text
+              style={[
+                styles.difficultyText,
+                { color: DIFFICULTY_COLORS[template.difficulty] },
+              ]}
+            >
+              {template.difficulty.charAt(0).toUpperCase() + template.difficulty.slice(1)}
+            </Text>
+          </View>
+        </View>
+        <Text style={styles.description} numberOfLines={2}>
+          {template.description}
+        </Text>
+      </View>
+
+      <View style={styles.content}>
+        <View style={styles.stats}>
+          <View style={styles.statRow}>
+            <Text style={styles.statLabel}>Days/Week</Text>
+            <Text style={styles.statValue}>{template.daysPerWeek}</Text>
+          </View>
+          <View style={styles.statRow}>
+            <Text style={styles.statLabel}>Est. Duration</Text>
+            <Text style={styles.statValue}>{template.estimatedDuration} min</Text>
+          </View>
+          <View style={styles.statRow}>
+            <Text style={styles.statLabel}>Sessions</Text>
+            <Text style={styles.statValue}>{template.days.length}</Text>
+          </View>
+        </View>
+
+        <View style={styles.radarContainer}>
+          <RadarChart
+            values={template.totalFpDistribution}
+            size={140}
+            showLabels={true}
+          />
+        </View>
+      </View>
+
+      <View style={styles.footer}>
+        <Text style={styles.tapHint}>Tap to view sessions</Text>
+      </View>
+    </Pressable>
+  );
+}
+
+const styles = StyleSheet.create({
+  card: {
+    backgroundColor: colors.background.secondary,
+    borderRadius: radius.lg,
+    padding: spacing[4],
+    marginBottom: spacing[3],
+  },
+  header: {
+    marginBottom: spacing[3],
+  },
+  titleRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: spacing[1],
+  },
+  name: {
+    ...textStyles.h3,
+    color: colors.text.primary,
+  },
+  difficultyBadge: {
+    paddingHorizontal: spacing[2],
+    paddingVertical: spacing[1],
+    borderRadius: radius.full,
+  },
+  difficultyText: {
+    ...textStyles.caption,
+    fontWeight: '600',
+  },
+  description: {
+    ...textStyles.bodySmall,
+    color: colors.text.secondary,
+  },
+  content: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    overflow: 'visible',
+  },
+  stats: {
+    flex: 1,
+  },
+  statRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: spacing[1],
+  },
+  statLabel: {
+    ...textStyles.bodySmall,
+    color: colors.text.muted,
+  },
+  statValue: {
+    ...textStyles.body,
+    color: colors.text.primary,
+    fontWeight: '600',
+  },
+  radarContainer: {
+    marginLeft: spacing[3],
+    marginRight: -spacing[2],
+    overflow: 'visible',
+  },
+  footer: {
+    marginTop: spacing[3],
+    alignItems: 'center',
+  },
+  tapHint: {
+    ...textStyles.caption,
+    color: colors.text.muted,
+  },
+});
