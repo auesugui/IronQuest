@@ -130,17 +130,17 @@ describe('PR Store', () => {
       expect(result.previousMaxReps).toBeNull();
     });
 
-    it('should not mark as PR without existing record', () => {
+    it('should not mark as weight PR if lower than max', () => {
       const { checkPR, recordPR } = usePRStore.getState();
 
       // First establish a PR
       recordPR('bench-press', 135, 10);
 
-      // Check without recording
+      // Check lower weight - should NOT be a weight PR
       const result = checkPR('bench-press', 125, 8);
 
-      expect(result.isWeightPR).toBe(false); // Lower weight
-      expect(result.isRepPR).toBe(false); // Lower reps at this weight
+      expect(result.isWeightPR).toBe(false); // Lower weight than max (135)
+      expect(result.isRepPR).toBe(true); // But IS a rep PR at weight 125 (first time at this weight)
     });
 
     it('should return previous max values when new PR detected', () => {
