@@ -6,6 +6,7 @@ import { create } from 'zustand';
 import { appStorage, STORAGE_KEYS } from '@/utils/storage';
 import type { Exercise, LoggedSet, SessionIntent } from '@/types';
 import { useWeightHistoryStore } from './weightHistoryStore';
+import { usePRStore } from './prStore';
 
 // -----------------------------------------------------------------------------
 // Types
@@ -139,12 +140,22 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
       const exercise = { ...exercises[exerciseIndex] };
       const sets = [...exercise.sets];
 
+      // Check for PR before recording
+      let isPR = false;
+      let isRepPR = false;
+
+      if (weight !== undefined && weight !== null && weight > 0 && exercise.id) {
+        const prResult = usePRStore.getState().recordPR(exercise.id, weight, reps);
+        isPR = prResult.isWeightPR;
+        isRepPR = prResult.isRepPR;
+      }
+
       sets[setIndex] = {
         reps,
         weight: weight ?? null,
         logged: true,
-        isPR: false,
-        isRepPR: false,
+        isPR,
+        isRepPR,
       };
 
       exercise.sets = sets;

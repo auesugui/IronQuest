@@ -8,6 +8,7 @@ import { colors, spacing, textStyles, radius } from '@/theme';
 import { usePetStore, usePlayerStore, selectTotalFP } from '@/stores';
 import { haptics } from '@/utils/haptics';
 import type { StatType } from '@/types';
+import { PetAvatar } from '@/components/pet';
 
 // Scaling stat costs:
 // - Physical stats: 5 FP (1-10), 8 FP (11-25), 12 FP (26-50)
@@ -138,11 +139,15 @@ export default function DenScreen() {
         <Text style={styles.fpValue}>{totalFP.toLocaleString()}</Text>
       </View>
 
-      {/* Pet Display Placeholder */}
+      {/* Pet Display */}
       <View style={styles.petContainer}>
-        <View style={styles.petPlaceholder}>
-          <Text style={styles.petEmoji}>💎</Text>
-        </View>
+        <PetAvatar
+          petType={petType}
+          stats={stats}
+          evolutionStage={evolutionStage}
+          size={180}
+          animated={true}
+        />
         <Text style={styles.petName}>{petName || 'Your Pet'}</Text>
         <Text style={styles.petType}>{petType} Type</Text>
       </View>

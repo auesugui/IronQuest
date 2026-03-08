@@ -29,6 +29,14 @@ jest.mock('../weightHistoryStore', () => ({
   },
 }));
 
+jest.mock('../prStore', () => ({
+  usePRStore: {
+    getState: jest.fn(() => ({
+      recordPR: jest.fn(() => ({ isWeightPR: false, isRepPR: false })),
+    })),
+  },
+}));
+
 describe('Workout Store', () => {
   beforeEach(() => {
     // Reset store before each test

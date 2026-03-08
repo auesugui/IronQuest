@@ -7,7 +7,7 @@ import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
-import { usePlayerStore, usePetStore, useWorkoutStore, useSettingsStore, useWeightHistoryStore } from '@/stores';
+import { usePlayerStore, usePetStore, useWorkoutStore, useSettingsStore, useWeightHistoryStore, usePRStore } from '@/stores';
 import { migrateStorage } from '@/utils/storage';
 import { colors } from '@/theme';
 
@@ -17,6 +17,7 @@ export default function RootLayout() {
   const hydrateWorkout = useWorkoutStore((state) => state.hydrate);
   const hydrateSettings = useSettingsStore((state) => state.hydrate);
   const hydrateWeightHistory = useWeightHistoryStore((state) => state.hydrate);
+  const hydratePR = usePRStore((state) => state.hydrate);
   const theme = useSettingsStore((state) => state.theme);
 
   // Hydrate all stores on mount
@@ -30,6 +31,7 @@ export default function RootLayout() {
           hydrateWorkout(),
           hydrateSettings(),
           hydrateWeightHistory(),
+          hydratePR(),
         ]);
       } catch (error) {
         console.warn('Storage initialization error:', error);

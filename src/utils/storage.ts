@@ -102,6 +102,10 @@ export const STORAGE_KEYS = {
     ACHIEVEMENTS: 'player.achievements',
     FULL_STATE: 'player.full_state',
   },
+  // Personal Records
+  PR: {
+    FULL_STATE: 'pr.full_state',
+  },
   // Misc
   SCHEMA_VERSION: 'schema_version',
 } as const;
