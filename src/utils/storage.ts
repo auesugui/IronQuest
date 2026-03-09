@@ -1,31 +1,8 @@
 // =============================================================================
-// IronQuest Storage Utility - AsyncStorage with MMKV fallback for dev builds
+// IronQuest Storage Utility - AsyncStorage only (works in Expo Go)
 // =============================================================================
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Platform } from 'react-native';
-
-// MMKV is optional - only works in custom dev builds, not Expo Go or Web
-let MMKV: any = null;
-let storage: any = null;
-
-// On web, always use AsyncStorage (localStorage under the hood)
-// MMKV doesn't work on web
-if (Platform.OS !== 'web') {
-  try {
-    const mmkvModule = require('react-native-mmkv');
-    MMKV = mmkvModule.MMKV;
-    storage = new MMKV({
-      id: 'ironquest-storage',
-    });
-    console.log('MMKV storage initialized');
-  } catch (e) {
-    // MMKV not available (Expo Go) - use AsyncStorage fallback
-    console.log('MMKV not available, using AsyncStorage fallback');
-  }
-} else {
-  console.log('Web platform detected, using AsyncStorage');
-}
 
 // Storage Keys
 export const STORAGE_KEYS = {
@@ -118,104 +95,60 @@ export const ASYNC_KEYS = {
 } as const;
 
 // =============================================================================
-// Unified Storage API (works with both MMKV and AsyncStorage)
+// Unified Storage API (AsyncStorage only - works in Expo Go)
 // =============================================================================
 
 export const appStorage = {
-  // Check if MMKV is available
-  isMMKVAvailable: (): boolean => storage !== null,
-
   // Getters
   getString: async (key: string): Promise<string | undefined> => {
-    if (storage) {
-      return storage.getString(key);
-    }
     const value = await AsyncStorage.getItem(key);
     return value ?? undefined;
   },
 
   getNumber: async (key: string): Promise<number | undefined> => {
-    if (storage) {
-      return storage.getNumber(key);
-    }
     const value = await AsyncStorage.getItem(key);
     return value ? parseFloat(value) : undefined;
   },
 
   getBoolean: async (key: string): Promise<boolean | undefined> => {
-    if (storage) {
-      return storage.getBoolean(key);
-    }
     const value = await AsyncStorage.getItem(key);
     return value === 'true' ? true : value === 'false' ? false : undefined;
   },
 
   getJSON: async <T>(key: string): Promise<T | undefined> => {
-    if (storage) {
-      const value = storage.getString(key);
-      return value ? JSON.parse(value) : undefined;
-    }
     const value = await AsyncStorage.getItem(key);
     return value ? JSON.parse(value) : undefined;
   },
 
   // Setters
   setString: async (key: string, value: string): Promise<void> => {
-    if (storage) {
-      storage.set(key, value);
-    } else {
-      await AsyncStorage.setItem(key, value);
-    }
+    await AsyncStorage.setItem(key, value);
   },
 
   setNumber: async (key: string, value: number): Promise<void> => {
-    if (storage) {
-      storage.set(key, value);
-    } else {
-      await AsyncStorage.setItem(key, String(value));
-    }
+    await AsyncStorage.setItem(key, String(value));
   },
 
   setBoolean: async (key: string, value: boolean): Promise<void> => {
-    if (storage) {
-      storage.set(key, value);
-    } else {
-      await AsyncStorage.setItem(key, value ? 'true' : 'false');
-    }
+    await AsyncStorage.setItem(key, value ? 'true' : 'false');
   },
 
   setJSON: async <T>(key: string, value: T): Promise<void> => {
-    const serialized = JSON.stringify(value);
-    if (storage) {
-      storage.set(key, serialized);
-    } else {
-      await AsyncStorage.setItem(key, serialized);
-    }
+    await AsyncStorage.setItem(key, JSON.stringify(value));
   },
 
   // Delete
   delete: async (key: string): Promise<void> => {
-    if (storage) {
-      storage.delete(key);
-    } else {
-      await AsyncStorage.removeItem(key);
-    }
+    await AsyncStorage.removeItem(key);
   },
 
   // Clear all
   clearAll: async (): Promise<void> => {
-    if (storage) {
-      storage.clearAll();
-    } else {
-      await AsyncStorage.clear();
-    }
+    await AsyncStorage.clear();
   },
 
   // Check exists
   contains: async (key: string): Promise<boolean> => {
-    if (storage) {
-      return storage.contains(key);
-    }
     const value = await AsyncStorage.getItem(key);
     return value !== null;
   },
@@ -236,57 +169,6 @@ export const migrateStorage = async (): Promise<void> => {
 
     await appStorage.setNumber(STORAGE_KEYS.SCHEMA_VERSION, SCHEMA_VERSION);
   }
-};
-
-// Legacy exports for backward compatibility with existing stores
-export const mmkv = {
-  getString: (key: string): string | undefined => storage?.getString(key),
-  getNumber: (key: string): number | undefined => storage?.getNumber(key),
-  getBoolean: (key: string): boolean | undefined => storage?.getBoolean(key),
-  getJSON: <T>(key: string): T | undefined => {
-    const value = storage?.getString(key);
-    return value ? JSON.parse(value) : undefined;
-  },
-  setString: (key: string, value: string): void => storage?.set(key, value),
-  setNumber: (key: string, value: number): void => storage?.set(key, value),
-  setBoolean: (key: string, value: boolean): void => storage?.set(key, value),
-  setJSON: <T>(key: string, value: T): void => storage?.set(key, JSON.stringify(value)),
-  delete: (key: string): void => storage?.delete(key),
-  clearAll: (): void => storage?.clearAll(),
-  contains: (key: string): boolean => storage?.contains(key) ?? false,
-};
-
-export const asyncStorage = {
-  get: async <T>(key: string): Promise<T | null> => {
-    const value = await AsyncStorage.getItem(key);
-    return value ? JSON.parse(value) : null;
-  },
-  set: async <T>(key: string, value: T): Promise<void> => {
-    await AsyncStorage.setItem(key, JSON.stringify(value));
-  },
-  delete: async (key: string): Promise<void> => {
-    await AsyncStorage.removeItem(key);
-  },
-  clearAll: async (): Promise<void> => {
-    await AsyncStorage.clear();
-  },
-  getMultiple: async <T>(keys: string[]): Promise<Record<string, T | null>> => {
-    const pairs = await AsyncStorage.multiGet(keys);
-    const result: Record<string, T | null> = {};
-    for (const [key, value] of pairs) {
-      if (key) {
-        result[key] = value ? JSON.parse(value) : null;
-      }
-    }
-    return result;
-  },
-  setMultiple: async <T>(pairs: Record<string, T>): Promise<void> => {
-    const entries = Object.entries(pairs).map(([key, value]) => [
-      key,
-      JSON.stringify(value),
-    ]);
-    await AsyncStorage.multiSet(entries as [string, string][]);
-  },
 };
 
 // Legacy key exports (for backward compatibility)
