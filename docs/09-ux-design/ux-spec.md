@@ -1,51 +1,12 @@
-# UI/Gamification Specialist — IronQuest
+# IronQuest — UX Specification
 
-You are a UX and gamification specialist for **IronQuest**, a React Native + Expo mobile app that combines a serious workout tracker with a pet-raising battle game. Your expertise spans fitness UX, game design psychology, progression systems, and mobile interaction design.
+> **Version:** 1.0 | **Status:** Reference | **Scope:** Experiential layer — everything the player sees, feels, and emotionally responds to.
 
----
-
-## FIRST ACTION: Read Memory Cache
-
-**Before starting any task, read your memory cache file for immediate context:**
-
-```
-.claude/memory/ui-gamification-memory.md
-```
-
-This file contains:
-- Core design rules (Tracker First, 3-Second Rule, No Punishment)
-- Session emotional arc table
-- Post-session summary requirements (most critical moment)
-- Animation timing reference
-- Haptic patterns
-- Rest timer emotional states
-- Pet interaction design patterns
-- Battle tower UX patterns
-- Streak visualization stages
-- Spending tension mechanics
-- Color language (semantic → color mapping)
-- Anti-patterns to avoid
-- Accessibility requirements
-- Component file structure
-
-**Always read the memory file first.** It provides instant access to the current state of the application relevant to your domain.
+This document defines the UX patterns, animation timing, haptic feedback, color language, and accessibility requirements for IronQuest. It is the authoritative reference for any UI work.
 
 ---
 
-## Your Domain
-
-You own the **experiential layer** — everything the player sees, feels, and emotionally responds to. This includes:
-
-- Micro-interactions and haptic feedback patterns
-- Progression indicators (FP counters, streak badges, stat radar charts)
-- Celebration moments (PR callouts, evolution sequences, tower clears)
-- Emotional pacing across the session lifecycle
-- Spending tension between functional stats and cosmetic expression
-- Motivation design that nudges without punishing
-
----
-
-## Core Design Principles You Must Enforce
+## Core Design Principles
 
 ### 1. Tracker First, Game Second
 
@@ -314,7 +275,7 @@ The rest timer is where most gym time is actually spent. It must feel calm, neve
 ## Color Language
 
 | Semantic | Color Direction | Usage |
-|----------|----------------|-------|
+|----------|----------|-------|
 | FP / Reward | Gold / Amber | FP counters, reward moments, PR callouts |
 | Power stat | Warm red-orange | Stat allocation, radar chart axis |
 | Guard stat | Steel blue | Stat allocation, radar chart axis |
@@ -334,36 +295,12 @@ The rest timer is where most gym time is actually spent. It must feel calm, neve
 ## Accessibility Requirements
 
 | Feature | Requirement |
-|---------|-------------|
+|---------|---------|
 | Screen Reader | All FP values, stats, pet mood, hunger announced. Battle results narrated |
 | Color Blindness | FP types differentiated by icon + shape + color (never color alone) |
 | Motor Impairment | Min 44pt touch targets. Gesture alternatives for all swipes. No time-pressure inputs |
 | Reduced Motion | `prefers-reduced-motion` respected. Disable particles, shorten transitions to crossfades |
 | High Contrast | Optional theme where stat colors and backgrounds meet WCAG AA |
-
----
-
-## Key Files & Areas
-
-| Area | Focus |
-|------|-------|
-| `src/components/feedback/` | Celebrations, FP popups, achievements |
-| `src/components/progress/` | XP bars, streak counters, floor indicators |
-| `src/components/pet/` | Pet display, feeding UI, mood indicators |
-| `src/components/workout/` | Exercise cards, rest timer, session summary |
-| `src/theme/` | Color system, spacing, typography |
-
----
-
-## Collaboration Points
-
-| Situation | Refer To |
-|-----------|----------|
-| Implementing SVG parameterization or Reanimated worklets | **mobile-specialist** |
-| FP formula balance, stat scaling, battle damage math | **game-logic-specialist** |
-| Zustand store structure for UI state, animation triggers | **state-architect** |
-| Supabase queries for leaderboards, cloud sync of cosmetics | **database-specialist** |
-| Pet SVG rendering pipeline, Skia/Rive integration | **mobile-specialist** |
 
 ---
 
@@ -380,18 +317,71 @@ The rest timer is where most gym time is actually spent. It must feel calm, neve
 
 ---
 
-## Key Documentation
+## Related Documentation
 
 | Topic | Doc |
 |-------|-----|
-| Core loop & design pillars | [`docs/01-product-overview/product-overview.md`](../../docs/01-product-overview/product-overview.md) |
-| FP economy & earning | [`docs/02-forge-points/fp-economy.md`](../../docs/02-forge-points/fp-economy.md) |
-| Session flow & in-gym UX | [`docs/03-workout-tracker/session-flow.md`](../../docs/03-workout-tracker/session-flow.md) |
-| Rest timer design | [`docs/03-workout-tracker/rest-timer.md`](../../docs/03-workout-tracker/rest-timer.md) |
-| Cardio UX | [`docs/03-workout-tracker/cardio.md`](../../docs/03-workout-tracker/cardio.md) |
-| Pet care & feeding | [`docs/04-pet-system/pet-care.md`](../../docs/04-pet-system/pet-care.md) |
-| Evolution & rendering | [`docs/04-pet-system/evolution-and-rendering.md`](../../docs/04-pet-system/evolution-and-rendering.md) |
-| Pet types & matchups | [`docs/04-pet-system/pet-types.md`](../../docs/04-pet-system/pet-types.md) |
-| Battle tower UX | [`docs/05-battle-tower/tower.md`](../../docs/05-battle-tower/tower.md) |
-| Cosmetics, achievements, quests | [`docs/06-game-systems/cosmetics-achievements-quests.md`](../../docs/06-game-systems/cosmetics-achievements-quests.md) |
-| Implementation priority | [`docs/07-technical/implementation-priority.md`](../../docs/07-technical/implementation-priority.md) |
+| Core loop & design pillars | [`../01-product-overview/product-overview.md`](../01-product-overview/product-overview.md) |
+| FP economy & earning | [`../02-forge-points/fp-economy.md`](../02-forge-points/fp-economy.md) |
+| Session flow & in-gym UX | [`../03-workout-tracker/session-flow.md`](../03-workout-tracker/session-flow.md) |
+| Rest timer design | [`../03-workout-tracker/rest-timer.md`](../03-workout-tracker/rest-timer.md) |
+| Cardio UX | [`../03-workout-tracker/cardio.md`](../03-workout-tracker/cardio.md) |
+| Pet care & feeding | [`../04-pet-system/pet-care.md`](../04-pet-system/pet-care.md) |
+| Evolution & rendering | [`../04-pet-system/evolution-and-rendering.md`](../04-pet-system/evolution-and-rendering.md) |
+| Pet types & matchups | [`../04-pet-system/pet-types.md`](../04-pet-system/pet-types.md) |
+| Battle tower UX | [`../05-battle-tower/tower.md`](../05-battle-tower/tower.md) |
+| Cosmetics, achievements, quests | [`../06-game-systems/cosmetics-achievements-quests.md`](../06-game-systems/cosmetics-achievements-quests.md) |
+| Implementation priority | [`../07-technical/implementation-priority.md`](../07-technical/implementation-priority.md) |
+
+---
+
+## Appendix A: Color Hex Codes
+
+| Semantic | Hex |
+|----------|-----|
+| FP / Reward (Gold/Amber) | `#F59E0B` |
+| Power (Warm red-orange) | `#EF4444` |
+| Guard (Steel blue) | `#3B82F6` |
+| Speed (Electric green) | `#22C55E` |
+| Vigor (Earth brown) | `#A16207` |
+| Focus (Sharp violet) | `#8B5CF6` |
+| Spirit (White-gold glow) | `#FEF08A` |
+| Rest / calm (Cool blue) | `#60A5FA` |
+| Ready (Soft gold) | `#FBBF24` |
+| Ferro type (Chrome/metallic) | `#94A3B8` |
+| Terra type (Forest/earth) | `#22C55E` |
+| Flux type (Neon/electric) | `#A855F7` |
+
+---
+
+## Appendix B: Suggested Component File Structure
+
+```
+src/components/
+├── feedback/
+│   ├── CelebrationModal.tsx
+│   ├── FPPopup.tsx
+│   ├── AchievementStamp.tsx
+│   └── EvolutionSequence.tsx
+├── progress/
+│   ├── XPBar.tsx
+│   ├── StreakFlame.tsx
+│   ├── FloorIndicator.tsx
+│   └── RadarChart.tsx
+├── pet/
+│   ├── PetDisplay.tsx
+│   ├── FeedingUI.tsx
+│   ├── MoodIndicator.tsx
+│   └── StatAllocator.tsx
+├── workout/
+│   ├── ExerciseCard.tsx
+│   ├── SetLogger.tsx
+│   ├── RestTimer.tsx
+│   └── SessionSummary.tsx
+└── theme/
+    ├── colors.ts
+    ├── spacing.ts
+    └── typography.ts
+```
+
+> Suggested layout only — actual locations may shift with Expo Router conventions. The grouping (feedback/progress/pet/workout/theme) is the load-bearing part.

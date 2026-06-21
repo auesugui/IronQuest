@@ -1,21 +1,21 @@
-# State Architect — Memory Cache
+# State Architecture — Zustand Stores
 
-> Quick reference for Zustand stores and data persistence. Read this first.
+> **Version:** 1.0 | **Scope:** Phase 1+ state management implementation reference
+
+This document defines the Zustand store architecture, TypeScript interfaces, selector patterns, and persistence strategy for IronQuest.
 
 ---
 
-## Storage Mapping
+## Storage Strategy
+
+**AsyncStorage only.** MMKV was removed for Expo Go compatibility — do not re-introduce.
 
 | Data | Storage | Reason |
 |------|---------|--------|
-| Pet stats | **MMKV** | Read every animation frame |
-| FP balances | **MMKV** | Frequent reads, immediate updates |
-| Current session | **MMKV** | Fast access, survives restart |
-| Settings | **MMKV** | Small, frequent reads |
-| Tower state | **MMKV** | Session-level, frequent updates |
-| Workout history | **AsyncStorage** | Large, infrequent access |
-| Achievements | **AsyncStorage** | Append-only, historical |
-| Personal baselines | **AsyncStorage** | Per-exercise, accessed post-session |
+| Pet stats, FP balances, current session, settings | AsyncStorage (via Zustand `persist`) | Hot reads; Zustand subscription keeps in-memory copy fast |
+| Workout history | AsyncStorage (raw) | Large, infrequent access |
+| Achievements | AsyncStorage (raw) | Append-only, historical |
+| Personal baselines | AsyncStorage (raw) | Per-exercise, accessed post-session |
 
 ---
 
@@ -23,17 +23,19 @@
 
 ```
 src/stores/
-├── playerStore.ts     # Profile, FP, streak
-├── petStore.ts        # Stats, evolution, care
-├── workoutStore.ts    # Active session, exercises
-├── towerStore.ts      # Floor progress, battles
-├── settingsStore.ts   # App preferences
+├── playerStore.ts     # Profile, FP, streak, achievements
+├── petStore.ts        # Stats, evolution, care, type, abilities, cosmetics
+├── workoutStore.ts    # Active session, exercises, rest timer
+├── towerStore.ts      # Floor progress, attempts, battle state
+├── settingsStore.ts   # Theme, haptics, notifications, units, reduced motion
 └── index.ts           # Barrel export
 ```
 
 ---
 
-## Player Store
+## Store Interfaces
+
+### Player Store
 
 ```typescript
 interface PlayerState {
@@ -80,9 +82,7 @@ const canAfford = (type: FPType, amount: number) => (state: PlayerState) =>
     : state.fp[type] >= amount;
 ```
 
----
-
-## Pet Store
+### Pet Store
 
 ```typescript
 interface PetState {
@@ -127,11 +127,7 @@ interface PetActions {
 }
 
 // Selectors
-const getTotalPower = (state: PetState) => {
-  const { stats, type } = state;
-  // Factor in type advantages, abilities, etc.
-  return stats.power;
-};
+const getTotalPower = (state: PetState) => state.stats.power;
 
 const getHungerDecayRate = (state: PetState) => {
   // Base: 0.05 per day, modified by evolution stage
@@ -139,22 +135,17 @@ const getHungerDecayRate = (state: PetState) => {
 };
 ```
 
----
-
-## Workout Store
+### Workout Store
 
 ```typescript
 interface WorkoutState {
-  // Session state
   active: boolean;
   templateId: string | null;
   startedAt: number | null;
 
-  // Current exercise
   currentExerciseIndex: number;
   exercises: Exercise[];
 
-  // Rest timer
   restTimer: {
     duration: number;
     remaining: number;
@@ -162,10 +153,7 @@ interface WorkoutState {
     paused: boolean;
   };
 
-  // Session intent
   intent: 'normal' | 'deload' | 'tempo' | 'pause' | 'drop_set' | 'rest_pause';
-
-  // Gym rush mode
   gymRushActive: boolean;
 }
 
@@ -187,22 +175,18 @@ interface Set {
 }
 
 interface WorkoutActions {
-  // Session lifecycle
   startSession: (templateId: string, intent: SessionIntent) => void;
   endSession: () => WorkoutSummary;
 
-  // Exercise flow
   logSet: (exerciseIndex: number, setIndex: number, reps: number, weight?: number) => void;
   completeExercise: (exerciseIndex: number) => void;
   nextExercise: () => void;
 
-  // Rest timer
   startRestTimer: (duration: number) => void;
   pauseRestTimer: () => void;
   resumeRestTimer: () => void;
   resetRestTimer: () => void;
 
-  // Modifiers
   toggleGymRush: () => void;
 }
 
@@ -218,9 +202,7 @@ const getTotalReps = (state: WorkoutState) =>
     .reduce((sum, s) => sum + (s.reps || 0), 0);
 ```
 
----
-
-## Tower Store
+### Tower Store
 
 ```typescript
 interface TowerState {
@@ -257,7 +239,6 @@ interface TowerActions {
   completeBattle: (won: boolean) => void;
   resetDailyAttempts: () => void;
 
-  // Getters
   canAttemptBattle: () => boolean;
   getEnemyStats: (floor: number) => EnemyStats;
 }
@@ -274,9 +255,7 @@ const getFloorTier = (state: TowerState) => {
 };
 ```
 
----
-
-## Settings Store
+### Settings Store
 
 ```typescript
 interface SettingsState {
@@ -302,43 +281,10 @@ interface SettingsActions {
 
 ---
 
-## Persistence Middleware
-
-```typescript
-import { MMKV } from 'react-native-mmkv';
-import { StateCreator } from 'zustand';
-import { createJSONStorage, persist, PersistOptions } from 'zustand/middleware';
-
-const mmkvStorage = {
-  getItem: (name: string) => {
-    const value = storage.getString(name);
-    return value ?? null;
-  },
-  setItem: (name: string, value: string) => {
-    storage.set(name, value);
-  },
-  removeItem: (name: string) => {
-    storage.delete(name);
-  },
-};
-
-// Usage
-export const usePlayerStore = create<PlayerState>()(
-  persist(
-    playerSlice,
-    {
-      name: 'player-store',
-      storage: createJSONStorage(() => mmkvStorage),
-    }
-  )
-);
-```
-
----
-
-## Key Subscription Patterns
+## Selectors & Subscription Patterns
 
 ### Optimized Selectors
+
 ```typescript
 // BAD: Re-renders on any FP change
 const fp = usePlayerStore(state => state.fp);
@@ -356,9 +302,9 @@ const { power, guard } = usePlayerStore(
 );
 ```
 
-### Derived State
+### Derived State (derive, don't store)
+
 ```typescript
-// Derive, don't store
 const useCanEvolve = () => {
   const evoXP = usePetStore(state => state.evolution.evoXP);
   const stage = usePetStore(state => state.evolution.stage);
@@ -372,9 +318,10 @@ const useCanEvolve = () => {
 
 ---
 
-## Cross-Store Patterns
+## Cross-Store Updates
 
-### Action That Updates Multiple Stores
+Multi-store updates live in services/hooks — **never** call one store from inside another store's action.
+
 ```typescript
 // In a service/hook, not in store directly
 const completeWorkoutSession = () => {
@@ -382,10 +329,8 @@ const completeWorkoutSession = () => {
   const playerStore = usePlayerStore.getState();
   const petStore = usePetStore.getState();
 
-  // Calculate FP
   const fpEarned = calculateFP(workoutStore);
 
-  // Update stores
   playerStore.addFP('generic', fpEarned.generic);
   playerStore.addFP('power', fpEarned.power);
   // ... other types
@@ -393,7 +338,6 @@ const completeWorkoutSession = () => {
   petStore.addEvoXP(calculateEvoXP(fpEarned));
   playerStore.updateStreak(true);
 
-  // End session
   return workoutStore.endSession();
 };
 ```
@@ -412,33 +356,42 @@ const completeWorkoutSession = () => {
 
 ---
 
+## Persistence Implementation
+
+```typescript
+import { createJSONStorage, persist, PersistOptions } from 'zustand/middleware';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+// Usage
+export const usePlayerStore = create<PlayerState>()(
+  persist(
+    playerSlice,
+    {
+      name: 'player-store',
+      storage: createJSONStorage(() => AsyncStorage),
+    }
+  )
+);
+```
+
+---
+
 ## Performance Targets
 
 | Operation | Target |
 |-----------|--------|
-| Store read (MMKV-backed) | <1ms |
-| Store write (MMKV-backed) | <5ms |
-| AsyncStorage read | <50ms |
-| AsyncStorage write | <100ms |
+| Store read (in-memory, after hydration) | <1ms |
+| Store write | <5ms |
+| AsyncStorage hydrate on cold start | <50ms |
+| AsyncStorage write (background) | <100ms |
 | State subscription update | <16ms (60fps) |
 
 ---
 
-## Collaboration Triggers
+## Operational Notes
 
-| When | Hand Off To |
-|------|-------------|
-| UI needs reactive data | mobile-specialist |
-| FP calculation triggers storage | game-logic-specialist |
-| Schema changes, migrations | database-specialist |
-| Animation triggers from state | ui-gamification-specialist |
-
----
-
-## Don't Forget
-
-1. **Zustand, not Redux** — minimal boilerplate
-2. **MMKV for hot data** — pet stats, FP, session
-3. **Select narrowly** — avoid unnecessary re-renders
-4. **Derive, don't duplicate** — computed state from source
-5. **Test migrations** — schema changes break stored data
+1. **Zustand, not Redux** — minimal boilerplate, sufficient for game state.
+2. **Select narrowly** — avoid unnecessary re-renders; use `shallow` for object selectors.
+3. **Derive, don't duplicate** — computed state derived from source, never stored twice.
+4. **AsyncStorage via Zustand `persist` middleware** — no direct MMKV replacement needed; in-memory cache handles hot reads.
+5. **Test migrations** — schema changes break stored data. Always include a `version` field and migrate on hydrate.

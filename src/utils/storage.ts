@@ -171,5 +171,3 @@ export const migrateStorage = async (): Promise<void> => {
   }
 };
 
-// Legacy key exports (for backward compatibility)
-export const MMKV_KEYS = STORAGE_KEYS;

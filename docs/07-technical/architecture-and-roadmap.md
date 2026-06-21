@@ -27,7 +27,7 @@ Shifted from PWA-first (v1) to React Native via Expo. Reasons:
 | **Advanced Graphics** | React Native Skia (Phase 2+) | Apex-stage particles/fractals. Not MVP |
 | **Interactive Animations** | Rive (Phase 3+) | Evolution sequences, battle effects, celebrations |
 | **State Management** | Zustand | Lightweight, no boilerplate. Game state + workout session |
-| **Local Persistence** | AsyncStorage + MMKV | AsyncStorage = workout history. MMKV = high-frequency reads (pet stats, FP, UI state) |
+| **Local Persistence** | AsyncStorage | Workout history, pet stats, FP, UI state. MMKV was removed for Expo Go compatibility — see [`state-architecture.md`](state-architecture.md) |
 | **Backend** | Supabase (Phase 3) | Managed Postgres, auth, real-time (leaderboards). Not MVP |
 | **Notifications** | Expo Notifications | Streak reminders, pet hunger, rest timer completion |
 

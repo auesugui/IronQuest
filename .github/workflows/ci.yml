@@ -1,0 +1,57 @@
+name: CI
+
+on:
+  push:
+    branches: [main, feature/phase1-core-implementation]
+  pull_request:
+    branches: [main, feature/phase1-core-implementation]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: Lint + Typecheck + Unit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm run lint
+      - run: npm test
+
+  e2e:
+    name: Playwright (golden paths)
+    runs-on: ubuntu-latest
+    # NOTE: continue-on-error while Expo web in CI is being stabilized.
+    # Remove this flag once the 4 specs reliably pass on the runner.
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - run: npm ci
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+      - name: Start Expo web
+        run: |
+          npm run web &
+          npx wait-on http://localhost:8081 --timeout 120000
+      - name: Run e2e tests
+        run: npm run test:e2e
+      - name: Upload artifacts on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-results
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 7

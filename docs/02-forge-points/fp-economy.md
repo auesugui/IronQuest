@@ -161,3 +161,70 @@ FP is spent on **two shop systems** sharing one currency:
 | **Cosmetic** | Color palettes, particle effects, accessories, evolution skins | Personal expression |
 
 This creates a genuine spending tension: stats vs. looks. That tension is the point.
+
+---
+
+## Single Source of Truth: FP_CONFIG
+
+All tuneable FP values live in `src/config/fp-values.ts`. No magic numbers in engine code — pull from this config.
+
+```typescript
+export const FP_CONFIG = {
+  base: {
+    completion: 100,
+    deload: 80,
+    shortSession: 50,        // sessions <15 min
+  },
+  volume: {
+    divisor: 10,             // 1 FP per 10 reps
+    repCeiling: 50,          // max reps earning volume FP
+  },
+  pr: {
+    weight: 50,
+    rep: 25,
+  },
+  streak: {
+    multiplierBase: 1.0,
+    multiplierPerDay: 0.1,
+    multiplierMax: 2.0,
+    dailySpirit: 5,
+    milestones: {
+      7: 15,
+      14: 30,
+      30: 50,
+    },
+  },
+  modifiers: {
+    slowTempo: 15,
+    pauseReps: 15,
+    dropSet: 20,
+    restPause: 10,
+    reducedRest: 10,
+    singleLimb: 15,
+    gymRush: 10,
+  },
+  stat: {
+    tier1: 5,                // 1-10
+    tier2: 8,                // 11-25
+    tier3: 12,               // 26-50
+    spirit: 10,              // any range
+  },
+  evolution: {
+    baseEvoXP: 10,
+    evoXPPerFP: 50,
+    thresholds: [0, 500, 2000, 5000],
+  },
+  battle: {
+    typeAdvantage: 1.3,
+    typeDisadvantage: 0.8,
+    baseCritChance: 0.05,
+    critPerFocus: 0.005,
+    baseAccuracy: 0.95,
+    accuracyPerFocus: 0.002,
+    baseHP: 100,
+    hpPerVigor: 10,
+  },
+} as const;
+```
+
+This is the authoritative reference for engine implementation. Changes here propagate everywhere — no other file should hardcode FP values.

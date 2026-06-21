@@ -33,7 +33,7 @@ The INDEX.md file contains:
 | **Pet Rendering** | React Native SVG |
 | **Animations** | Reanimated v3 (+ Skia Phase 2+, Rive Phase 3+) |
 | **State Management** | Zustand |
-| **Local Persistence** | AsyncStorage + MMKV |
+| **Local Persistence** | AsyncStorage (MMKV removed for Expo Go compatibility) |
 | **Backend** | Supabase (Phase 3) |
 | **Notifications** | Expo Notifications |
 
@@ -70,17 +70,15 @@ See [`docs/07-technical/architecture-and-roadmap.md`](docs/07-technical/architec
 
 ## Agent Architecture
 
-Use these specialized agents for different aspects of IronQuest development:
+IronQuest uses a single collapsed engineer agent for Phase 1+ work — covering mobile, state, and game-logic layers. UX reference lives in `docs/09-ux-design/ux-spec.md` (not as an agent). Database/Supabase work is Phase 3 and deferred.
 
-| Agent | Focus Area | When to Use |
-|-------|-----------|-------------|
-| **mobile-specialist** | React Native + Expo core | Components, navigation, animations, pet rendering |
-| **database-specialist** | Data architecture & Supabase | Schema design, queries, sync patterns, RLS |
-| **game-logic-specialist** | Game systems & mechanics | FP calculations, battle engine, evolution, achievements |
-| **state-architect** | State management | Zustand stores, persistence, offline-first patterns |
-| **ui-gamification-specialist** | UX for gamified fitness | Micro-interactions, progression indicators, celebrations |
+| When | Use |
+|------|-----|
+| Interactive pairing or AFK queue task | `ironquest-engineer` agent |
 
-Agent configurations are located in `.claude/agents/`.
+Agent definition: [`.claude/agents/ironquest-engineer.md`](.claude/agents/ironquest-engineer.md)
+
+**Verification model:** Chrome DevTools MCP is the primary in-loop verification tool (token-cheap a11y snapshots). Playwright is frozen at the 4 golden-path specs and runs in CI — agents do not author new Playwright tests as part of routine task work.
 
 ---
 
@@ -99,12 +97,8 @@ Agent configurations are located in `.claude/agents/`.
 │   ├── 07-technical/              # Architecture, roadmap, implementation priority
 │   └── 08-decisions/              # Decision log, amendments
 ├── .claude/
-│   └── agents/                    # Specialized agent configurations
-│       ├── mobile-specialist.md
-│       ├── database-specialist.md
-│       ├── game-logic-specialist.md
-│       ├── state-architect.md
-│       └── ui-gamification-specialist.md
+│   └── agents/
+│       └── ironquest-engineer.md  # Collapsed engineer agent (mobile + state + game-logic)
 └── CLAUDE.md                      # This file
 ```
 

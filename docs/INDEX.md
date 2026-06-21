@@ -19,8 +19,11 @@
 | | [04 — Pet Types](04-pet-system/pet-types.md) | Ferro/Terra/Flux, type advantages (1.3x/0.8x) |
 | Battle Tower | [05 — Tower](05-battle-tower/tower.md) | Floor tiers, auto-battle, attempts, prestige system |
 | Game Systems | [06 — Cosmetics, Achievements, Quests](06-game-systems/cosmetics-achievements-quests.md) | Shop structure, achievement badges, weekly quests |
+| UX Design | [09 — UX Specification](09-ux-design/ux-spec.md) | Emotional arc, animation timing, haptics, color language, accessibility, anti-patterns |
 | Technical | [07 — Architecture & Roadmap](07-technical/architecture-and-roadmap.md) | Tech stack, data model, phases, estimates, risks |
 | | [07 — Implementation Priority](07-technical/implementation-priority.md) | P0/P1/P2 build order by phase |
+| | [07 — State Architecture](07-technical/state-architecture.md) | Zustand stores, TypeScript interfaces, selector patterns, persistence |
+| | [07 — Local Schema](07-technical/local-schema.md) | Entity schemas, AsyncStorage keys, offline-first rules, migrations |
 | Decisions | [08 — Decisions Log](08-decisions/decisions-log.md) | 7 resolved decisions, amendments, future ideas |
 
 ---
@@ -105,7 +108,7 @@ Ferro (Metal) → beats Flux → beats Terra → beats Ferro
 | Pet Rendering | React Native SVG |
 | Animations | Reanimated v3 (+ Skia Phase 2+, Rive Phase 3+) |
 | State | Zustand |
-| Storage | AsyncStorage + MMKV |
+| Storage | AsyncStorage |
 | Backend | Supabase (Phase 3) |
 | Notifications | Expo Notifications |
 

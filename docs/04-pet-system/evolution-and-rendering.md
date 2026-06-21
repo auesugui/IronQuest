@@ -73,3 +73,24 @@ Pet Stat Array + Visual Seed → SVG Parameterization → Unique Creature
 ### Morph Animation
 - Uses **interpolated SVG path transitions**
 - Animated via Reanimated for smooth, satisfying evolution sequences
+
+---
+
+## EvoXP Earning Formula
+
+```typescript
+function calculateEvoXP(session: WorkoutSession): number {
+  // Base: 10 EvoXP per workout
+  // Bonus: 1 EvoXP per 50 FP earned
+  return 10 + Math.floor(session.totalFP / 50);
+}
+```
+
+### Ability Slots by Evolution Stage
+
+| Stage | Ability Slots |
+|-------|---------------|
+| 1 (Shard) | 1 |
+| 2 (Form) | 2 |
+| 3 (Prime) | 3 |
+| 4 (Apex) | 4 |
