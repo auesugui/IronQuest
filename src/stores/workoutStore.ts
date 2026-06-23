@@ -196,6 +196,15 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
 
       const newState = { ...state, exercises };
       persistSession(newState).catch(console.warn);
+
+      // Keep weight history fresh so next session auto-fills the edited value
+      if (weight !== undefined && weight !== null) {
+        const exerciseData = state.exercises[exerciseIndex];
+        if (exerciseData?.id) {
+          useWeightHistoryStore.getState().saveWeight(exerciseData.id, weight);
+        }
+      }
+
       return { exercises };
     });
   },
