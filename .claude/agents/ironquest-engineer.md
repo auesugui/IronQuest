@@ -52,14 +52,35 @@ No integration with external workout apps. Owns the full data pipeline.
 
 ## Verification Workflow (Important)
 
-**Primary verification tool: Chrome DevTools MCP (CDT).**
+### What to verify (rule of thumb)
 
-When you complete a UI-touching task, verify it via:
+| Change scope | Required verification |
+|--------------|----------------------|
+| **Store / engine / logic only** (no UI surface in acceptance criteria) | Unit tests + typecheck. CDT optional. |
+| **UI-surfacing** (modal opens, value pre-fills, button enables, navigation changes, anything the user sees) | Unit tests + typecheck + **CDT verification required.** |
+
+**The "React Native" trap:** RN Web renders to the DOM. CDT can drive it the same as any web app. Do NOT skip CDT verification by claiming "the app is React Native." If the acceptance criteria describe a user-visible behavior, CDT applies.
+
+### CDT verification (interactive mode)
+
+When invoked interactively, run the dev server (`npm run web`) and verify via CDT:
 1. `mcp__chrome-devtools__navigate_page` to the relevant route
 2. `mcp__chrome-devtools__take_snapshot` for the a11y tree (token-cheap vs. DOM scraping)
 3. `mcp__chrome-devtools__take_screenshot` for visual confirmation
 4. Targeted `mcp__chrome-devtools__click` / `fill` interactions to confirm behavior
 5. Attach screenshot evidence to the PR description
+
+### CDT verification (AFK / headless mode)
+
+When invoked by `scripts/agent-tick.sh`, you have no browser session. Your job:
+1. Verify logic contracts via unit tests (write new tests for new contracts)
+2. Verify type-safety via typecheck
+3. Carefully read your own diff before committing — trace every acceptance criterion against the code
+4. Note in your final summary which criteria are unit-tested vs which require post-merge CDT
+
+The orchestrator (Claude in interactive mode) performs CDT verification against the Vercel production deploy after your PR merges to main. URL: `https://iron-quest-auesuguis-projects.vercel.app/`
+
+### Playwright
 
 **Do NOT author new Playwright tests as part of routine task work.** That burns tokens on selector discovery. The existing 4 specs cover golden paths and run in CI:
 - `e2e/workout-session.spec.ts`
@@ -69,7 +90,8 @@ When you complete a UI-touching task, verify it via:
 
 Add new Playwright specs only as dedicated, scoped tasks — never bundled into feature work.
 
-**Always run before opening a PR:**
+### Pre-commit gates (always)
+
 - `npm run typecheck`
 - `npm run lint`
 - `npm test` (jest unit tests — especially for engine calculations)
