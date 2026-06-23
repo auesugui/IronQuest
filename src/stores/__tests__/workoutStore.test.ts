@@ -317,6 +317,30 @@ describe('Workout Store', () => {
         expect(set.reps).toBe(12);
         expect(set.weight).toBe(145);
       });
+
+      it('should save edited weight to weight history', () => {
+        const mockSaveWeight = jest.fn();
+        (useWeightHistoryStore.getState as jest.Mock).mockReturnValue({
+          saveWeight: mockSaveWeight,
+        });
+
+        const { editSet } = useWorkoutStore.getState();
+        editSet(0, 0, 10, 145);
+
+        expect(mockSaveWeight).toHaveBeenCalledWith('bench-press', 145);
+      });
+
+      it('should not save weight to history when edited weight is undefined', () => {
+        const mockSaveWeight = jest.fn();
+        (useWeightHistoryStore.getState as jest.Mock).mockReturnValue({
+          saveWeight: mockSaveWeight,
+        });
+
+        const { editSet } = useWorkoutStore.getState();
+        editSet(0, 0, 10);
+
+        expect(mockSaveWeight).not.toHaveBeenCalled();
+      });
     });
 
     describe('clearSet', () => {
