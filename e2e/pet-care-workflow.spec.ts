@@ -5,7 +5,7 @@
 // Run with: npm run test:e2e -- --grep "Pet Care"
 // =============================================================================
 
-import { test, expect } from '@playwright/test';
+import { expect, test } from '@playwright/test';
 
 const MOBILE_VIEWPORT = { width: 390, height: 844 };
 
@@ -38,7 +38,7 @@ async function seedState(page: any, overrides: any = {}) {
     pet: { ...defaultState.pet, ...overrides.pet },
   };
 
-  await page.evaluate((s) => {
+  await page.evaluate((s: typeof state) => {
     localStorage.setItem('player.full_state', JSON.stringify(s.player));
     localStorage.setItem('pet.full_state', JSON.stringify(s.pet));
   }, state);
@@ -163,17 +163,17 @@ test.describe('Pet Care - Feeding', () => {
     // Get initial FP
     const fpCard = page.locator('text=Available FP').locator('..');
     const fpText = await fpCard.textContent();
-    const initialFP = parseInt(fpText?.match(/\d+/)?.[0] || '0', 10);
+    const initialFP = Number.parseInt(fpText?.match(/\d+/)?.[0] || '0', 10);
 
     // Feed pet
     const feedButton = page.getByText(/Feed/).first();
-    if (await feedButton.isVisible() && !(await feedButton.getAttribute('disabled'))) {
+    if ((await feedButton.isVisible()) && !(await feedButton.getAttribute('disabled'))) {
       await feedButton.click();
       await page.waitForTimeout(500);
 
       // Verify FP decreased by 20 (FEED_COST)
       const fpTextAfter = await fpCard.textContent();
-      const afterFP = parseInt(fpTextAfter?.match(/\d+/)?.[0] || '0', 10);
+      const afterFP = Number.parseInt(fpTextAfter?.match(/\d+/)?.[0] || '0', 10);
 
       expect(afterFP).toBe(initialFP - 20);
     }
@@ -196,7 +196,7 @@ test.describe('Pet Care - Stat Upgrades', () => {
     // Get initial total FP
     const fpCard = page.locator('text=Available FP').locator('..');
     const fpText = await fpCard.textContent();
-    const initialFP = parseInt(fpText?.match(/\d+/)?.[0] || '0', 10);
+    const initialFP = Number.parseInt(fpText?.match(/\d+/)?.[0] || '0', 10);
 
     // Click Power upgrade button
     const powerUpgrade = page.getByText('+1').first();
@@ -205,7 +205,7 @@ test.describe('Pet Care - Stat Upgrades', () => {
 
     // Verify FP decreased
     const fpTextAfter = await fpCard.textContent();
-    const afterFP = parseInt(fpTextAfter?.match(/\d+/)?.[0] || '0', 10);
+    const afterFP = Number.parseInt(fpTextAfter?.match(/\d+/)?.[0] || '0', 10);
 
     expect(afterFP).toBeLessThan(initialFP);
   });
@@ -371,7 +371,7 @@ test.describe('Pet Care - Persistence', () => {
     // Get initial total FP
     const fpCard = page.locator('text=Available FP').locator('..');
     const fpText = await fpCard.textContent();
-    const initialFP = parseInt(fpText?.match(/\d+/)?.[0] || '0', 10);
+    const initialFP = Number.parseInt(fpText?.match(/\d+/)?.[0] || '0', 10);
 
     // Upgrade a stat
     const powerUpgrade = page.getByText('+1').first();
@@ -379,7 +379,7 @@ test.describe('Pet Care - Persistence', () => {
     await page.waitForTimeout(500);
 
     const fpTextAfter = await fpCard.textContent();
-    const afterFP = parseInt(fpTextAfter?.match(/\d+/)?.[0] || '0', 10);
+    const afterFP = Number.parseInt(fpTextAfter?.match(/\d+/)?.[0] || '0', 10);
 
     // Refresh
     await page.reload();
@@ -389,7 +389,7 @@ test.describe('Pet Care - Persistence', () => {
 
     // Verify FP persisted
     const fpTextPersisted = await fpCard.textContent();
-    const persistedFP = parseInt(fpTextPersisted?.match(/\d+/)?.[0] || '0', 10);
+    const persistedFP = Number.parseInt(fpTextPersisted?.match(/\d+/)?.[0] || '0', 10);
 
     expect(persistedFP).toBe(afterFP);
   });

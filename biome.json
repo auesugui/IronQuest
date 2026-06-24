@@ -30,10 +30,15 @@
       },
       "style": {
         "noNonNullAssertion": "off",
-        "useConst": "error"
+        "useConst": "error",
+        "useNodejsImportProtocol": "warn",
+        "useTemplate": "warn"
       },
       "suspicious": {
         "noExplicitAny": "warn"
+      },
+      "complexity": {
+        "noForEach": "warn"
       },
       "a11y": {
         "useButtonType": "off"

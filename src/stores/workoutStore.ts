@@ -2,11 +2,11 @@
 // IronQuest Workout Store - Active Session, Exercises, Rest Timer
 // =============================================================================
 
+import type { Exercise, SessionIntent } from '@/types';
+import { STORAGE_KEYS, appStorage } from '@/utils/storage';
 import { create } from 'zustand';
-import { appStorage, STORAGE_KEYS } from '@/utils/storage';
-import type { Exercise, LoggedSet, SessionIntent } from '@/types';
-import { useWeightHistoryStore } from './weightHistoryStore';
 import { usePRStore } from './prStore';
+import { useWeightHistoryStore } from './weightHistoryStore';
 
 // -----------------------------------------------------------------------------
 // Types
@@ -353,7 +353,9 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
   // Hydration
   hydrate: async () => {
     try {
-      const stored = await appStorage.getJSON<Partial<WorkoutState>>(STORAGE_KEYS.SESSION.FULL_STATE);
+      const stored = await appStorage.getJSON<Partial<WorkoutState>>(
+        STORAGE_KEYS.SESSION.FULL_STATE
+      );
       if (stored?.active) {
         set({
           active: stored.active,

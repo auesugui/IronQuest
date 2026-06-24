@@ -2,14 +2,21 @@
 // IronQuest App Root Layout
 // =============================================================================
 
-import { useEffect } from 'react';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
+import { useEffect } from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
-import { usePlayerStore, usePetStore, useWorkoutStore, useSettingsStore, useWeightHistoryStore, usePRStore } from '@/stores';
-import { migrateStorage } from '@/utils/storage';
+import {
+  usePRStore,
+  usePetStore,
+  usePlayerStore,
+  useSettingsStore,
+  useWeightHistoryStore,
+  useWorkoutStore,
+} from '@/stores';
 import { colors } from '@/theme';
+import { migrateStorage } from '@/utils/storage';
 
 export default function RootLayout() {
   const hydratePlayer = usePlayerStore((state) => state.hydrate);
@@ -39,7 +46,7 @@ export default function RootLayout() {
     };
 
     init();
-  }, [hydratePlayer, hydratePet, hydrateWorkout, hydrateSettings, hydrateWeightHistory]);
+  }, [hydratePlayer, hydratePet, hydrateWorkout, hydrateSettings, hydrateWeightHistory, hydratePR]);
 
   // Determine color scheme
   const isDark = theme === 'dark' || theme === 'system';

@@ -32,6 +32,4 @@ export {
   selectLastWeight,
   selectRecentWeights,
 } from './weightHistoryStore';
-export {
-  usePRStore,
-} from './prStore';
+export { usePRStore } from './prStore';

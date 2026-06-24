@@ -2,8 +2,8 @@
 // IronQuest Weight History Store Unit Tests (TDD)
 // =============================================================================
 
+import { appStorage } from '@/utils/storage';
 import { useWeightHistoryStore } from '../weightHistoryStore';
-import { appStorage, STORAGE_KEYS } from '@/utils/storage';
 
 // Mock the storage module
 jest.mock('@/utils/storage', () => ({

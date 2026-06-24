@@ -2,7 +2,7 @@
 // IronQuest FP System Tests - Validates implementation against PRD specs
 // =============================================================================
 
-import { describe, it, expect, beforeEach } from '@jest/globals';
+import { beforeEach, describe, expect, it } from '@jest/globals';
 
 // =============================================================================
 // Test Helpers - Pure functions extracted from implementation for testing
@@ -75,10 +75,7 @@ const MUSCLE_TO_FP_TYPE: Record<string, FPType[]> = {
 };
 
 // Calculate FP distribution from workout (weighted by muscle groups)
-function calculateWorkoutFP(
-  totalFP: number,
-  muscleGroups: string[]
-): Partial<FPBalances> {
+function calculateWorkoutFP(totalFP: number, muscleGroups: string[]): Partial<FPBalances> {
   const typeWeights: Record<FPType, number> = {
     generic: 0,
     power: 0,
@@ -93,7 +90,7 @@ function calculateWorkoutFP(
   for (const muscle of muscleGroups) {
     const types = MUSCLE_TO_FP_TYPE[muscle.toLowerCase()];
     if (types) {
-      types.forEach(t => typeWeights[t]++);
+      types.forEach((t) => typeWeights[t]++);
     }
   }
 

@@ -2,13 +2,13 @@
 // IronQuest Quest Board (Home Tab)
 // =============================================================================
 
-import { View, Text, StyleSheet, ScrollView, Pressable } from 'react-native';
 import { router } from 'expo-router';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
 
-import { colors, spacing, textStyles, radius } from '@/theme';
-import { usePlayerStore, selectTotalFP } from '@/stores';
-import { WORKOUT_TEMPLATES } from '@/data';
 import { TemplateCard } from '@/components/workout/TemplateCard';
+import { WORKOUT_TEMPLATES } from '@/data';
+import { selectTotalFP, usePlayerStore } from '@/stores';
+import { colors, radius, spacing, textStyles } from '@/theme';
 
 export default function QuestBoardScreen() {
   const totalFP = usePlayerStore(selectTotalFP);

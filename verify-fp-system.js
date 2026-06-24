@@ -87,7 +87,7 @@ function calculateWorkoutFP(totalFP, muscleGroups) {
   for (const muscle of muscleGroups) {
     const types = MUSCLE_TO_FP_TYPE[muscle.toLowerCase()];
     if (types) {
-      types.forEach(t => typeWeights[t]++);
+      types.forEach((t) => typeWeights[t]++);
     }
   }
 
@@ -338,7 +338,7 @@ console.log('══════════════════════�
 
 if (failed > 0) {
   console.log('\nFailed tests:');
-  failures.forEach(f => {
+  failures.forEach((f) => {
     console.log(`  - ${f.name}: ${f.error}`);
   });
   process.exit(1);

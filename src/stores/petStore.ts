@@ -2,9 +2,9 @@
 // IronQuest Pet Store - Stats, Evolution, Care
 // =============================================================================
 
-import { create } from 'zustand';
-import { appStorage, STORAGE_KEYS } from '@/utils/storage';
 import type { PetStats, PetType } from '@/types';
+import { STORAGE_KEYS, appStorage } from '@/utils/storage';
+import { create } from 'zustand';
 
 // -----------------------------------------------------------------------------
 // Types
@@ -419,9 +419,11 @@ export const selectTotalStats = (state: PetStore): number => {
 /**
  * Check if a specific stat is at max value
  */
-export const selectIsStatMaxed = (stat: keyof PetStats) => (state: PetStore): boolean => {
-  return state.stats[stat] >= MAX_STAT_VALUE;
-};
+export const selectIsStatMaxed =
+  (stat: keyof PetStats) =>
+  (state: PetStore): boolean => {
+    return state.stats[stat] >= MAX_STAT_VALUE;
+  };
 
 /**
  * Check if pet is initialized

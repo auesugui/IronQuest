@@ -100,7 +100,7 @@ export const FP_CONFIG = {
       tutorial: { min: 1, max: 10, powerRange: [0.5, 0.7] },
       normal: { min: 11, max: 30, powerRange: [0.7, 0.9] },
       challenge: { min: 31, max: 50, powerRange: [0.9, 1.1] },
-      endless: { min: 51, max: Infinity, powerRange: [1.1, 1.5] },
+      endless: { min: 51, max: Number.POSITIVE_INFINITY, powerRange: [1.1, 1.5] },
     },
   },
 

@@ -122,7 +122,8 @@ function calculateTotalFPDistribution(days: TemplateDay[]): Record<StatType, num
 const PPL_TEMPLATE: WorkoutTemplateDefinition = {
   id: 'ppl_6day',
   name: 'Push / Pull / Legs',
-  description: 'Classic 6-day split for balanced development. Each muscle group trained 2x per week.',
+  description:
+    'Classic 6-day split for balanced development. Each muscle group trained 2x per week.',
   category: 'ppl',
   daysPerWeek: 6,
   difficulty: 'intermediate',
@@ -302,7 +303,8 @@ UPPER_LOWER_TEMPLATE.totalFpDistribution = calculateTotalFPDistribution(UPPER_LO
 const FULL_BODY_TEMPLATE: WorkoutTemplateDefinition = {
   id: 'full_body_3day',
   name: 'Full Body',
-  description: '3-day program hitting all muscles each session. Great for beginners and time-efficient.',
+  description:
+    '3-day program hitting all muscles each session. Great for beginners and time-efficient.',
   category: 'full_body',
   daysPerWeek: 3,
   difficulty: 'beginner',
@@ -368,7 +370,8 @@ FULL_BODY_TEMPLATE.totalFpDistribution = calculateTotalFPDistribution(FULL_BODY_
 const MINIMALIST_TEMPLATE: WorkoutTemplateDefinition = {
   id: 'minimalist_2day',
   name: 'Minimalist',
-  description: '2-day program focused on compound movements. Maximum results with minimum time investment.',
+  description:
+    '2-day program focused on compound movements. Maximum results with minimum time investment.',
   category: 'minimalist',
   daysPerWeek: 2,
   difficulty: 'beginner',
@@ -419,7 +422,8 @@ MINIMALIST_TEMPLATE.totalFpDistribution = calculateTotalFPDistribution(MINIMALIS
 const POWERBUILDING_HOME_TEMPLATE: WorkoutTemplateDefinition = {
   id: 'powerbuilding_home_6day',
   name: 'Powerbuilding Home',
-  description: '6-day dumbbell-only split by Nick Ludlow. Heavy compounds first (5x15 total), back-off AMQRAP, then rest-pause accessories.',
+  description:
+    '6-day dumbbell-only split by Nick Ludlow. Heavy compounds first (5x15 total), back-off AMQRAP, then rest-pause accessories.',
   category: 'ppl',
   daysPerWeek: 6,
   difficulty: 'advanced',
@@ -430,9 +434,27 @@ const POWERBUILDING_HOME_TEMPLATE: WorkoutTemplateDefinition = {
       name: 'Push A',
       shortName: 'Push A',
       exercises: [
-        { exerciseId: 'db_floor_press', sets: 5, reps: '15 total', restSeconds: 90, notes: 'Heavy' },
-        { exerciseId: 'db_floor_press', sets: 1, reps: 'AMQRAP', restSeconds: 90, notes: 'Back-off -20%' },
-        { exerciseId: 'db_overhead_press', sets: 3, reps: '25 total', restSeconds: 60, notes: 'Seated' },
+        {
+          exerciseId: 'db_floor_press',
+          sets: 5,
+          reps: '15 total',
+          restSeconds: 90,
+          notes: 'Heavy',
+        },
+        {
+          exerciseId: 'db_floor_press',
+          sets: 1,
+          reps: 'AMQRAP',
+          restSeconds: 90,
+          notes: 'Back-off -20%',
+        },
+        {
+          exerciseId: 'db_overhead_press',
+          sets: 3,
+          reps: '25 total',
+          restSeconds: 60,
+          notes: 'Seated',
+        },
         { exerciseId: 'close_grip_db_floor_press', sets: 3, reps: '30 total', restSeconds: 60 },
         { exerciseId: 'dumbbell_flyes', sets: 5, reps: '50 total', restSeconds: 30 },
         { exerciseId: 'overhead_db_tricep_ext', sets: 5, reps: '50 total', restSeconds: 30 },
@@ -447,7 +469,13 @@ const POWERBUILDING_HOME_TEMPLATE: WorkoutTemplateDefinition = {
       exercises: [
         { exerciseId: 'db_rdl', sets: 5, reps: '15 total', restSeconds: 90, notes: 'Heavy' },
         { exerciseId: 'db_rdl', sets: 1, reps: 'AMQRAP', restSeconds: 90, notes: 'Back-off -20%' },
-        { exerciseId: 'db_bent_over_row', sets: 3, reps: '25 total', restSeconds: 60, notes: 'Supinated grip' },
+        {
+          exerciseId: 'db_bent_over_row',
+          sets: 3,
+          reps: '25 total',
+          restSeconds: 60,
+          notes: 'Supinated grip',
+        },
         { exerciseId: 'incline_db_row', sets: 3, reps: '30 total', restSeconds: 60 },
         { exerciseId: 'db_shrugs', sets: 5, reps: '50 total', restSeconds: 30 },
         { exerciseId: 'standing_db_curl', sets: 5, reps: '50 total', restSeconds: 30 },
@@ -460,8 +488,20 @@ const POWERBUILDING_HOME_TEMPLATE: WorkoutTemplateDefinition = {
       name: 'Legs A',
       shortName: 'Legs A',
       exercises: [
-        { exerciseId: 'db_goblet_squat', sets: 5, reps: '15 total', restSeconds: 90, notes: 'Heavy' },
-        { exerciseId: 'db_goblet_squat', sets: 1, reps: 'AMQRAP', restSeconds: 90, notes: 'Back-off -20%' },
+        {
+          exerciseId: 'db_goblet_squat',
+          sets: 5,
+          reps: '15 total',
+          restSeconds: 90,
+          notes: 'Heavy',
+        },
+        {
+          exerciseId: 'db_goblet_squat',
+          sets: 1,
+          reps: 'AMQRAP',
+          restSeconds: 90,
+          notes: 'Back-off -20%',
+        },
         { exerciseId: 'db_good_morning', sets: 3, reps: '25 total', restSeconds: 60 },
         { exerciseId: 'bulgarian_split_squat', sets: 3, reps: '30 total', restSeconds: 60 },
         { exerciseId: 'nordic_curl', sets: 5, reps: '50 total', restSeconds: 30 },
@@ -475,8 +515,20 @@ const POWERBUILDING_HOME_TEMPLATE: WorkoutTemplateDefinition = {
       name: 'Push B',
       shortName: 'Push B',
       exercises: [
-        { exerciseId: 'db_overhead_press', sets: 5, reps: '15 total', restSeconds: 90, notes: 'Standing, heavy' },
-        { exerciseId: 'db_overhead_press', sets: 1, reps: 'AMQRAP', restSeconds: 90, notes: 'Back-off -20%' },
+        {
+          exerciseId: 'db_overhead_press',
+          sets: 5,
+          reps: '15 total',
+          restSeconds: 90,
+          notes: 'Standing, heavy',
+        },
+        {
+          exerciseId: 'db_overhead_press',
+          sets: 1,
+          reps: 'AMQRAP',
+          restSeconds: 90,
+          notes: 'Back-off -20%',
+        },
         { exerciseId: 'incline_dumbbell_press', sets: 3, reps: '25 total', restSeconds: 60 },
         { exerciseId: 'close_grip_db_floor_press', sets: 3, reps: '30 total', restSeconds: 60 },
         { exerciseId: 'dumbbell_flyes', sets: 5, reps: '50 total', restSeconds: 30 },
@@ -490,9 +542,27 @@ const POWERBUILDING_HOME_TEMPLATE: WorkoutTemplateDefinition = {
       name: 'Pull B',
       shortName: 'Pull B',
       exercises: [
-        { exerciseId: 'db_stiff_leg_deadlift', sets: 5, reps: '15 total', restSeconds: 90, notes: 'Wide stance' },
-        { exerciseId: 'db_stiff_leg_deadlift', sets: 1, reps: 'AMQRAP', restSeconds: 90, notes: 'Back-off -20%' },
-        { exerciseId: 'db_bent_over_row', sets: 3, reps: '25 total', restSeconds: 60, notes: 'Pronated grip' },
+        {
+          exerciseId: 'db_stiff_leg_deadlift',
+          sets: 5,
+          reps: '15 total',
+          restSeconds: 90,
+          notes: 'Wide stance',
+        },
+        {
+          exerciseId: 'db_stiff_leg_deadlift',
+          sets: 1,
+          reps: 'AMQRAP',
+          restSeconds: 90,
+          notes: 'Back-off -20%',
+        },
+        {
+          exerciseId: 'db_bent_over_row',
+          sets: 3,
+          reps: '25 total',
+          restSeconds: 60,
+          notes: 'Pronated grip',
+        },
         { exerciseId: 'db_pullover', sets: 3, reps: '30 total', restSeconds: 60 },
         { exerciseId: 'one_arm_db_row', sets: 5, reps: '50 total', restSeconds: 30 },
         { exerciseId: 'incline_db_curl', sets: 5, reps: '50 total', restSeconds: 30 },
@@ -505,9 +575,27 @@ const POWERBUILDING_HOME_TEMPLATE: WorkoutTemplateDefinition = {
       name: 'Legs B',
       shortName: 'Legs B',
       exercises: [
-        { exerciseId: 'db_front_squat', sets: 5, reps: '15 total', restSeconds: 90, notes: 'Heavy' },
-        { exerciseId: 'db_front_squat', sets: 1, reps: 'AMQRAP', restSeconds: 90, notes: 'Back-off -20%' },
-        { exerciseId: 'db_rdl', sets: 3, reps: '25 total', restSeconds: 60, notes: 'Slow eccentric' },
+        {
+          exerciseId: 'db_front_squat',
+          sets: 5,
+          reps: '15 total',
+          restSeconds: 90,
+          notes: 'Heavy',
+        },
+        {
+          exerciseId: 'db_front_squat',
+          sets: 1,
+          reps: 'AMQRAP',
+          restSeconds: 90,
+          notes: 'Back-off -20%',
+        },
+        {
+          exerciseId: 'db_rdl',
+          sets: 3,
+          reps: '25 total',
+          restSeconds: 60,
+          notes: 'Slow eccentric',
+        },
         { exerciseId: 'db_hip_thrust', sets: 3, reps: '30 total', restSeconds: 60 },
         { exerciseId: 'db_lunges', sets: 5, reps: '50 total', restSeconds: 30 },
         { exerciseId: 'db_sissy_squat', sets: 5, reps: '50 total', restSeconds: 30 },
@@ -523,7 +611,9 @@ const POWERBUILDING_HOME_TEMPLATE: WorkoutTemplateDefinition = {
 POWERBUILDING_HOME_TEMPLATE.days.forEach((day) => {
   day.fpDistribution = calculateDayFPDistribution(day.exercises);
 });
-POWERBUILDING_HOME_TEMPLATE.totalFpDistribution = calculateTotalFPDistribution(POWERBUILDING_HOME_TEMPLATE.days);
+POWERBUILDING_HOME_TEMPLATE.totalFpDistribution = calculateTotalFPDistribution(
+  POWERBUILDING_HOME_TEMPLATE.days
+);
 
 // -----------------------------------------------------------------------------
 // Export All Templates
@@ -549,6 +639,8 @@ export function getTemplatesByDaysPerWeek(days: number): WorkoutTemplateDefiniti
   return WORKOUT_TEMPLATES.filter((t) => t.daysPerWeek === days);
 }
 
-export function getTemplatesByDifficulty(difficulty: 'beginner' | 'intermediate' | 'advanced'): WorkoutTemplateDefinition[] {
+export function getTemplatesByDifficulty(
+  difficulty: 'beginner' | 'intermediate' | 'advanced'
+): WorkoutTemplateDefinition[] {
   return WORKOUT_TEMPLATES.filter((t) => t.difficulty === difficulty);
 }

@@ -3,8 +3,8 @@
 // =============================================================================
 // Tests for FP balances, spending, streak logic, and achievements
 
-import { usePlayerStore, selectTotalFP, selectCanAfford, selectStreakDays } from '../playerStore';
-import { appStorage, STORAGE_KEYS } from '@/utils/storage';
+import { STORAGE_KEYS, appStorage } from '@/utils/storage';
+import { selectCanAfford, selectStreakDays, selectTotalFP, usePlayerStore } from '../playerStore';
 
 // Mock storage
 jest.mock('@/utils/storage', () => ({
@@ -553,7 +553,11 @@ describe('Player Store', () => {
           focus: 5,
           spirit: 15,
         },
-        streak: { current: 7, longest: 14, lastWorkoutDate: new Date().toISOString().split('T')[0] },
+        streak: {
+          current: 7,
+          longest: 14,
+          lastWorkoutDate: new Date().toISOString().split('T')[0],
+        },
       });
     });
 

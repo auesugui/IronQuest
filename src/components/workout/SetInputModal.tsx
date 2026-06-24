@@ -2,22 +2,22 @@
 // IronQuest Set Input Modal - Custom Reps & Weight Input
 // =============================================================================
 
+import { memo, useCallback, useEffect, useState } from 'react';
 import {
-  View,
-  Text,
-  StyleSheet,
-  Pressable,
-  Modal,
-  TextInput,
+  Button,
+  InputAccessoryView,
   Keyboard,
   KeyboardAvoidingView,
+  Modal,
   Platform,
-  InputAccessoryView,
-  Button,
+  Pressable,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
 } from 'react-native';
-import { useState, useEffect, useCallback, memo } from 'react';
 
-import { colors, spacing, textStyles, radius } from '@/theme';
+import { colors, radius, spacing, textStyles } from '@/theme';
 import { haptics } from '@/utils/haptics';
 
 interface SetInputModalProps {
@@ -48,39 +48,40 @@ const KeyboardAccessory = memo(({ inputId }: { inputId: string }) => (
 KeyboardAccessory.displayName = 'KeyboardAccessory';
 
 // Memoized stepper button to prevent unnecessary rerenders
-const StepperButton = memo(({
-  label,
-  onPress,
-}: {
-  label: string;
-  onPress: () => void;
-}) => (
-  <Pressable style={styles.stepperButton} onPress={onPress}>
-    <Text style={styles.stepperText}>{label}</Text>
-  </Pressable>
-));
+const StepperButton = memo(
+  ({
+    label,
+    onPress,
+  }: {
+    label: string;
+    onPress: () => void;
+  }) => (
+    <Pressable style={styles.stepperButton} onPress={onPress}>
+      <Text style={styles.stepperText}>{label}</Text>
+    </Pressable>
+  )
+);
 
 StepperButton.displayName = 'StepperButton';
 
 // Memoized quick weight button
-const QuickWeightButton = memo(({
-  weight,
-  selected,
-  onPress,
-}: {
-  weight: number;
-  selected: boolean;
-  onPress: () => void;
-}) => (
-  <Pressable
-    style={[styles.quickButton, selected && styles.quickButtonActive]}
-    onPress={onPress}
-  >
-    <Text style={[styles.quickButtonText, selected && styles.quickButtonTextActive]}>
-      {weight}
-    </Text>
-  </Pressable>
-));
+const QuickWeightButton = memo(
+  ({
+    weight,
+    selected,
+    onPress,
+  }: {
+    weight: number;
+    selected: boolean;
+    onPress: () => void;
+  }) => (
+    <Pressable style={[styles.quickButton, selected && styles.quickButtonActive]} onPress={onPress}>
+      <Text style={[styles.quickButtonText, selected && styles.quickButtonTextActive]}>
+        {weight}
+      </Text>
+    </Pressable>
+  )
+);
 
 QuickWeightButton.displayName = 'QuickWeightButton';
 
@@ -115,11 +116,11 @@ export function SetInputModal({
   }, [visible]);
 
   const handleSave = useCallback(() => {
-    const repsValue = parseInt(reps, 10);
-    if (isNaN(repsValue) || repsValue < 1) return;
+    const repsValue = Number.parseInt(reps, 10);
+    if (Number.isNaN(repsValue) || repsValue < 1) return;
 
     haptics.success();
-    const weightValue = weight ? parseFloat(weight) : undefined;
+    const weightValue = weight ? Number.parseFloat(weight) : undefined;
     onSave(repsValue, weightValue);
     Keyboard.dismiss();
     onClose();
@@ -145,7 +146,7 @@ export function SetInputModal({
   const adjustReps = useCallback((amount: number) => {
     haptics.tap();
     setReps((prev) => {
-      const current = parseInt(prev, 10) || 0;
+      const current = Number.parseInt(prev, 10) || 0;
       return Math.max(1, current + amount).toString();
     });
   }, []);
@@ -153,7 +154,7 @@ export function SetInputModal({
   const adjustWeight = useCallback((amount: number) => {
     haptics.tap();
     setWeight((prev) => {
-      const current = parseFloat(prev) || 0;
+      const current = Number.parseFloat(prev) || 0;
       return Math.max(0, current + amount).toString();
     });
   }, []);
@@ -164,7 +165,7 @@ export function SetInputModal({
   }, []);
 
   const weightString = weight;
-  const selectedWeight = weightString ? parseInt(weightString, 10) : null;
+  const selectedWeight = weightString ? Number.parseInt(weightString, 10) : null;
 
   return (
     <Modal
@@ -263,9 +264,7 @@ export function SetInputModal({
                 <Text style={styles.cancelButtonText}>Cancel</Text>
               </Pressable>
               <Pressable style={styles.saveButton} onPress={handleSave}>
-                <Text style={styles.saveButtonText}>
-                  {isEditing ? 'Update' : 'Log Set'}
-                </Text>
+                <Text style={styles.saveButtonText}>{isEditing ? 'Update' : 'Log Set'}</Text>
               </Pressable>
             </View>
 

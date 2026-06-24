@@ -5,7 +5,7 @@
 // Run with: npm run test:e2e -- --grep "Workout Session"
 // =============================================================================
 
-import { test, expect } from '@playwright/test';
+import { expect, test } from '@playwright/test';
 
 const MOBILE_VIEWPORT = { width: 390, height: 844 };
 

@@ -2,7 +2,7 @@
 // IronQuest Battle Tower Tab
 // =============================================================================
 
-import { View, Text, StyleSheet, ScrollView, Pressable } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { colors, spacing, textStyles } from '@/theme';
 

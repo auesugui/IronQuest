@@ -3,8 +3,16 @@
 // =============================================================================
 // Tests for pet initialization, care, stats, evolution, and hunger decay
 
-import { usePetStore } from '../petStore';
-import { appStorage, STORAGE_KEYS } from '@/utils/storage';
+import { STORAGE_KEYS, appStorage } from '@/utils/storage';
+import {
+  selectCanEvolve,
+  selectHungerPercentage,
+  selectIsPetInitialized,
+  selectIsStatMaxed,
+  selectPet,
+  selectTotalStats,
+  usePetStore,
+} from '../petStore';
 
 // Mock storage
 jest.mock('@/utils/storage', () => ({
@@ -540,7 +548,7 @@ describe('Pet Store', () => {
     describe('selectPet', () => {
       it('should return complete pet state', () => {
         const state = usePetStore.getState();
-        const pet = state.selectPet ? state.selectPet(state) : null;
+        const pet = selectPet(state);
 
         if (pet) {
           expect(pet.id).toBeTruthy();
@@ -552,7 +560,7 @@ describe('Pet Store', () => {
     describe('selectHungerPercentage', () => {
       it('should return hunger as percentage', () => {
         const state = usePetStore.getState();
-        const hunger = state.selectHungerPercentage ? state.selectHungerPercentage(state) : state.hunger;
+        const hunger = selectHungerPercentage(state);
 
         expect(hunger).toBe(100);
       });
@@ -560,21 +568,22 @@ describe('Pet Store', () => {
       it('should clamp to 0-100 range', () => {
         usePetStore.setState({ hunger: 150 });
         const state = usePetStore.getState();
-        const hunger = state.selectHungerPercentage ? state.selectHungerPercentage(state) : state.hunger;
+        const hunger = selectHungerPercentage(state);
 
-        // Selector should clamp, or raw value if no selector
+        // Selector clamps to 0-100 range
         expect(hunger).toBeGreaterThanOrEqual(0);
-        expect(hunger).toBeLessThanOrEqual(150);
+        expect(hunger).toBeLessThanOrEqual(100);
       });
     });
 
     describe('selectCanEvolve', () => {
       it('should return true when FP threshold reached', () => {
-        const { addFP } = usePetStore.getState();
-
-        addFP(500);
+        // Set totalFPEarned directly to the next threshold without triggering
+        // auto-evolution (addFP would move past the threshold and evolve the
+        // pet, making selectCanEvolve return false for the NEXT stage).
+        usePetStore.setState({ totalFPEarned: 500, evolutionStage: 1 });
         const state = usePetStore.getState();
-        const canEvolve = state.selectCanEvolve ? state.selectCanEvolve(state) : true;
+        const canEvolve = selectCanEvolve(state);
 
         expect(canEvolve).toBe(true);
       });
@@ -584,7 +593,7 @@ describe('Pet Store', () => {
 
         addFP(5000);
         const state = usePetStore.getState();
-        const canEvolve = state.selectCanEvolve ? state.selectCanEvolve(state) : false;
+        const canEvolve = selectCanEvolve(state);
 
         expect(canEvolve).toBe(false);
       });
@@ -598,7 +607,7 @@ describe('Pet Store', () => {
         upgradeStat('guard', 5);
 
         const state = usePetStore.getState();
-        const total = state.selectTotalStats ? state.selectTotalStats(state) : 15;
+        const total = selectTotalStats(state);
 
         expect(total).toBe(15);
       });
@@ -609,7 +618,7 @@ describe('Pet Store', () => {
         usePetStore.setState({ stats: { ...usePetStore.getState().stats, power: 50 } });
 
         const state = usePetStore.getState();
-        const isMaxed = state.selectIsStatMaxed ? state.selectIsStatMaxed('power')(state) : true;
+        const isMaxed = selectIsStatMaxed('power')(state);
 
         expect(isMaxed).toBe(true);
       });
@@ -618,7 +627,7 @@ describe('Pet Store', () => {
         usePetStore.setState({ stats: { ...usePetStore.getState().stats, power: 25 } });
 
         const state = usePetStore.getState();
-        const isMaxed = state.selectIsStatMaxed ? state.selectIsStatMaxed('power')(state) : false;
+        const isMaxed = selectIsStatMaxed('power')(state);
 
         expect(isMaxed).toBe(false);
       });
@@ -627,7 +636,7 @@ describe('Pet Store', () => {
     describe('selectIsPetInitialized', () => {
       it('should return true when pet has id', () => {
         const state = usePetStore.getState();
-        const isInitialized = state.selectIsPetInitialized ? state.selectIsPetInitialized(state) : !!state.id;
+        const isInitialized = selectIsPetInitialized(state);
 
         expect(isInitialized).toBe(true);
       });
@@ -636,7 +645,7 @@ describe('Pet Store', () => {
         usePetStore.getState().reset();
 
         const state = usePetStore.getState();
-        const isInitialized = state.selectIsPetInitialized ? state.selectIsPetInitialized(state) : !!state.id;
+        const isInitialized = selectIsPetInitialized(state);
 
         expect(isInitialized).toBe(false);
       });
