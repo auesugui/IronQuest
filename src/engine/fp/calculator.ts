@@ -3,7 +3,7 @@
 // =============================================================================
 
 import { FP_CONFIG, getStreakMultiplier } from '@/config/fp-values';
-import type { FPBalances, WorkoutSession, StatType } from '@/types';
+import type { FPBalances, StatType, WorkoutSession } from '@/types';
 
 // -----------------------------------------------------------------------------
 // FP Calculation Result
@@ -33,8 +33,33 @@ export function calculateSessionFP(
 ): FPCalculationResult {
   const { base, volume, pr, streak, modifiers } = FP_CONFIG;
 
-  // Base FP
-  const baseFP = session.intent === 'deload' ? base.deload : base.completion;
+  // Deload: flat per workout. Spec: no volume, no PR, no streak scaling.
+  if (session.intent === 'deload') {
+    const flat = base.deload;
+    return {
+      total: flat,
+      breakdown: {
+        base: flat,
+        volume: 0,
+        pr: 0,
+        streak: 1.0,
+        modifiers: 0,
+      },
+      typed: {
+        generic: flat,
+        power: 0,
+        guard: 0,
+        speed: 0,
+        vigor: 0,
+        focus: 0,
+        spirit: 0,
+      },
+      streakMultiplier: 1.0,
+    };
+  }
+
+  // Base FP (normal path — deload handled above)
+  const baseFP = base.completion;
 
   // Volume bonus (1 FP per 10 reps, capped at 50 per set)
   const totalReps = session.exercises
@@ -145,7 +170,7 @@ export function calculateSpiritFP(streakDays: number): number {
 
   // Add milestone bonuses
   for (const [days, bonus] of Object.entries(milestones)) {
-    if (streakDays >= parseInt(days)) {
+    if (streakDays >= Number.parseInt(days)) {
       total += bonus;
     }
   }

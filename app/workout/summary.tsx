@@ -2,30 +2,16 @@
 // IronQuest Workout Summary Screen
 // =============================================================================
 
-import { View, Text, StyleSheet, ScrollView, Pressable } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
+import { useEffect, useRef, useState } from 'react';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useEffect, useState, useRef } from 'react';
 
-import { colors, spacing, textStyles, radius } from '@/theme';
+import { type WorkoutSummary, calculateWorkoutSummary } from '@/lib/workout-summary';
+import { usePetStore, usePlayerStore, useWorkoutStore } from '@/stores';
+import { colors, radius, spacing, textStyles } from '@/theme';
+import type { Exercise, SessionIntent } from '@/types';
 import { haptics } from '@/utils/haptics';
-import { useWorkoutStore, usePlayerStore, usePetStore } from '@/stores';
-import type { Exercise, FPBalances } from '@/types';
-
-interface WorkoutSummary {
-  totalFP: number;
-  breakdown: {
-    base: number;
-    volumeBonus: number;
-    prBonus: number;
-    streakMultiplier: number;
-  };
-  typedFP: Partial<FPBalances>; // FP distributed by muscle groups
-  exercises: Exercise[];
-  duration: number;
-  totalReps: number;
-  totalSets: number;
-}
 
 export default function WorkoutSummaryScreen() {
   const insets = useSafeAreaInsets();
@@ -43,16 +29,17 @@ export default function WorkoutSummaryScreen() {
       hasCalculated.current = true;
       try {
         const exercises = JSON.parse(params.exercises as string) as Exercise[];
-        const duration = parseInt(params.duration as string, 10);
-        const streakDays = parseInt((params.streakDays as string) || '0', 10);
+        const duration = Number.parseInt(params.duration as string, 10);
+        const streakDays = Number.parseInt((params.streakDays as string) || '0', 10);
+        const intent = ((params.intent as string) || 'normal') as SessionIntent;
 
-        const workoutSummary = calculateWorkoutSummary(exercises, duration, streakDays);
+        const workoutSummary = calculateWorkoutSummary(exercises, duration, streakDays, intent);
         setSummary(workoutSummary);
       } catch (e) {
         console.error('Failed to parse workout summary:', e);
       }
     }
-  }, [params.exercises, params.duration, params.streakDays]);
+  }, [params.exercises, params.duration, params.streakDays, params.intent]);
 
   const handleFinish = () => {
     haptics.success();
@@ -137,7 +124,9 @@ export default function WorkoutSummaryScreen() {
           {summary.breakdown.streakMultiplier > 1 && (
             <View style={styles.breakdownRow}>
               <Text style={styles.breakdownLabel}>Streak multiplier</Text>
-              <Text style={styles.breakdownValueHighlight}>x{summary.breakdown.streakMultiplier.toFixed(1)}</Text>
+              <Text style={styles.breakdownValueHighlight}>
+                x{summary.breakdown.streakMultiplier.toFixed(1)}
+              </Text>
             </View>
           )}
         </View>
@@ -169,7 +158,7 @@ export default function WorkoutSummaryScreen() {
           <Text style={styles.exercisesTitle}>Exercises Completed</Text>
 
           {summary.exercises.map((exercise, index) => {
-            const loggedSets = exercise.sets.filter(s => s.logged);
+            const loggedSets = exercise.sets.filter((s) => s.logged);
             const exerciseReps = loggedSets.reduce((sum, s) => sum + (s.reps ?? 0), 0);
 
             return (
@@ -180,7 +169,7 @@ export default function WorkoutSummaryScreen() {
                     {loggedSets.length} sets · {exerciseReps} reps
                   </Text>
                 </View>
-                {exercise.sets.some(s => s.isPR) && (
+                {exercise.sets.some((s) => s.isPR) && (
                   <View style={styles.prTag}>
                     <Text style={styles.prTagText}>PR</Text>
                   </View>
@@ -199,146 +188,6 @@ export default function WorkoutSummaryScreen() {
       </View>
     </View>
   );
-}
-
-// Muscle group to FP type mapping
-// Push (Chest/Shoulders) → Power + Focus
-// Pull (Back/Traps) → Guard + Focus
-// Legs (Quads/Hams/Calves) → Speed + Vigor
-// Arms (Biceps/Triceps) → Focus
-// Core → Vigor
-const MUSCLE_TO_FP_TYPE: Record<string, (keyof FPBalances)[]> = {
-  // Push muscles
-  chest: ['power', 'focus'],
-  shoulders: ['power', 'focus'],
-  triceps: ['focus'],
-  // Pull muscles
-  back: ['guard', 'focus'],
-  traps: ['guard', 'focus'],
-  lats: ['guard', 'focus'],
-  biceps: ['focus'],
-  // Leg muscles
-  quads: ['speed', 'vigor'],
-  hamstrings: ['speed', 'vigor'],
-  glutes: ['speed', 'vigor'],
-  calves: ['vigor'],
-  // Core
-  core: ['vigor'],
-  abs: ['vigor'],
-};
-
-// Calculate workout summary from exercises
-function calculateWorkoutSummary(
-  exercises: Exercise[],
-  duration: number,
-  streakDays: number
-): WorkoutSummary {
-  let totalBase = 0;
-  let totalVolumeBonus = 0;
-  let totalPRBonus = 0;
-  let totalReps = 0;
-  let totalSets = 0;
-
-  // Track typed FP with weights (count muscle group occurrences)
-  const typeWeights: Record<keyof FPBalances, number> = {
-    generic: 0,
-    power: 0,
-    guard: 0,
-    speed: 0,
-    vigor: 0,
-    focus: 0,
-    spirit: 0, // Spirit only from streaks, not workouts
-  };
-
-  for (const exercise of exercises) {
-    const loggedSets = exercise.sets.filter(s => s.logged);
-
-    if (loggedSets.length > 0) {
-      // Base FP: 100 per exercise with at least one logged set
-      totalBase += 100;
-
-      // Volume bonus: 1 FP per 10 reps
-      const exerciseReps = loggedSets.reduce((sum, s) => sum + (s.reps ?? 0), 0);
-      totalVolumeBonus += Math.floor(exerciseReps / 10);
-      totalReps += exerciseReps;
-
-      // PR bonus (simplified - would need historical data for real PR detection)
-      for (const set of loggedSets) {
-        if (set.isPR) totalPRBonus += 50;
-        if (set.isRepPR) totalPRBonus += 25;
-      }
-
-      totalSets += loggedSets.length;
-
-      // Count FP types from muscle groups (weighted distribution)
-      for (const muscle of exercise.muscleGroups) {
-        const types = MUSCLE_TO_FP_TYPE[muscle.toLowerCase()];
-        if (types) {
-          types.forEach(t => typeWeights[t]++);
-        }
-      }
-    }
-  }
-
-  // Streak multiplier: 1.0 + 0.1 * days, max 2.0
-  const streakMultiplier = Math.min(1.0 + 0.1 * streakDays, 2.0);
-
-  // Total with multiplier
-  const subTotal = totalBase + totalVolumeBonus + totalPRBonus;
-  const totalFP = Math.floor(subTotal * streakMultiplier);
-
-  // Distribute FP proportionally based on muscle group weights
-  const typedFP: Partial<FPBalances> = {};
-  const totalWeight = Object.entries(typeWeights)
-    .filter(([key]) => key !== 'spirit') // Spirit not from workouts
-    .reduce((sum, [, weight]) => sum + weight, 0);
-
-  if (totalWeight === 0) {
-    // No muscle groups mapped, use generic
-    typedFP.generic = totalFP;
-  } else {
-    let distributed = 0;
-    const fpTypes = Object.keys(typeWeights) as (keyof FPBalances)[];
-
-    for (const type of fpTypes) {
-      if (type === 'spirit') continue; // Skip spirit - only from streaks
-
-      const weight = typeWeights[type];
-      if (weight > 0) {
-        // Proportional allocation
-        const amount = Math.floor((weight / totalWeight) * totalFP);
-        typedFP[type] = amount;
-        distributed += amount;
-      }
-    }
-
-    // Distribute remainder (due to floor) to the highest weighted type
-    const remainder = totalFP - distributed;
-    if (remainder > 0) {
-      const highestType = Object.entries(typeWeights)
-        .filter(([key]) => key !== 'spirit')
-        .sort((a, b) => b[1] - a[1])[0]?.[0] as keyof FPBalances | undefined;
-
-      if (highestType && typedFP[highestType] !== undefined) {
-        typedFP[highestType] = (typedFP[highestType] ?? 0) + remainder;
-      }
-    }
-  }
-
-  return {
-    totalFP,
-    breakdown: {
-      base: totalBase,
-      volumeBonus: totalVolumeBonus,
-      prBonus: totalPRBonus,
-      streakMultiplier,
-    },
-    typedFP,
-    exercises,
-    duration,
-    totalReps,
-    totalSets,
-  };
 }
 
 const styles = StyleSheet.create({
