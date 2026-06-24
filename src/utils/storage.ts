@@ -83,6 +83,10 @@ export const STORAGE_KEYS = {
   PR: {
     FULL_STATE: 'pr.full_state',
   },
+  // Per-exercise baseline (Personal Baseline relative FP scaling)
+  BASELINE: {
+    FULL_STATE: 'baseline.full_state',
+  },
   // Misc
   SCHEMA_VERSION: 'schema_version',
 } as const;

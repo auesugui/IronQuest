@@ -33,3 +33,4 @@ export {
   selectRecentWeights,
 } from './weightHistoryStore';
 export { usePRStore } from './prStore';
+export { useBaselineStore } from './baselineStore';

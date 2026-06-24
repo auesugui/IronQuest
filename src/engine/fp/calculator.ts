@@ -29,7 +29,8 @@ export interface FPCalculationResult {
 export function calculateSessionFP(
   session: WorkoutSession,
   streakDays: number,
-  prs: { weight: number; rep: number }
+  prs: { weight: number; rep: number },
+  baselines?: Record<string, number>
 ): FPCalculationResult {
   const { base, volume, pr, streak, modifiers } = FP_CONFIG;
 
@@ -61,14 +62,30 @@ export function calculateSessionFP(
   // Base FP (normal path — deload handled above)
   const baseFP = base.completion;
 
-  // Volume bonus (1 FP per 10 reps, capped at 50 per set)
-  const totalReps = session.exercises
-    .flatMap((e) => e.sets.filter((s) => s.logged))
-    .reduce((sum, s) => {
-      const cappedReps = Math.min(s.reps || 0, volume.repCeiling);
-      return sum + cappedReps;
-    }, 0);
-  const volumeFP = Math.floor(totalReps / volume.divisor);
+  // Volume bonus. Per-exercise: when a baseline exists (Personal Baseline
+  // relative scaling), the bonus is floor(% above baseline). Without one,
+  // fall back to absolute 1 FP per 10 reps. Total capped per session.
+  let volumeFP = 0;
+  for (const exercise of session.exercises) {
+    const loggedSets = exercise.sets.filter((s) => s.logged);
+    if (loggedSets.length === 0) continue;
+
+    const baseline = baselines?.[exercise.id];
+    if (baseline && baseline > 0) {
+      const sessionMax = Math.max(...loggedSets.map((s) => (s.weight ?? 0) * (s.reps ?? 0)));
+      if (sessionMax > 0) {
+        const pctAbove = Math.max(0, (sessionMax / baseline - 1) * 100);
+        volumeFP += Math.floor(pctAbove);
+      }
+    } else {
+      const exReps = loggedSets.reduce(
+        (sum, s) => sum + Math.min(s.reps ?? 0, volume.repCeiling),
+        0
+      );
+      volumeFP += Math.floor(exReps / volume.divisor);
+    }
+  }
+  volumeFP = Math.min(volumeFP, volume.maxBonusPerSession);
 
   // PR bonuses
   const prFP = prs.weight * pr.weight + prs.rep * pr.rep;
