@@ -22,7 +22,7 @@ REPO="auesugui/IronQuest"
 WORKTREE_BASE=".claude/worktrees"
 RUNS_DIR=".claude/agents/runs"
 BASE_BRANCH="${BASE_BRANCH:-feature/phase1-core-implementation}"
-MAX_BUDGET_USD="${MAX_BUDGET_USD:-50}"
+MAX_BUDGET_USD="${MAX_BUDGET_USD:-20}"
 
 # --- Args -------------------------------------------------------------------
 if [[ $# -lt 1 ]]; then
