@@ -50,35 +50,70 @@ No integration with external workout apps. Owns the full data pipeline.
 
 ---
 
-## Verification Workflow (Important)
+## Verification Workflow (Important — read carefully)
 
-### What to verify (rule of thumb)
+### Tiered verification model
 
-| Change scope | Required verification |
-|--------------|----------------------|
-| **Store / engine / logic only** (no UI surface in acceptance criteria) | Unit tests + typecheck. CDT optional. |
-| **UI-surfacing** (modal opens, value pre-fills, button enables, navigation changes, anything the user sees) | Unit tests + typecheck + **CDT verification required.** |
+| Issue type | Required verification | Permitted `verification_status` |
+|------------|----------------------|----------------------------------|
+| **Logic-only** (no UI surface in acceptance criteria — pure store/engine/types) | Unit tests + typecheck + lint | `test-only` (acceptable) |
+| **UI-surfacing** (modal opens, value pre-fills, button enables, navigation changes, anything the user sees) | Above + **CDT browser trace of each acceptance criterion** | `browser-checked` (only acceptable status) |
 
-**The "React Native" trap:** RN Web renders to the DOM. CDT can drive it the same as any web app. Do NOT skip CDT verification by claiming "the app is React Native." If the acceptance criteria describe a user-visible behavior, CDT applies.
+**"Test-only" is not "done with caveats" — it's a different status.** A UI issue marked `test-only` is explicitly unfinished. Own that in the summary.
 
-### CDT verification (interactive mode)
+### The "React Native is no excuse" rule
 
-When invoked interactively, run the dev server (`npm run web`) and verify via CDT:
-1. `mcp__chrome-devtools__navigate_page` to the relevant route
-2. `mcp__chrome-devtools__take_snapshot` for the a11y tree (token-cheap vs. DOM scraping)
-3. `mcp__chrome-devtools__take_screenshot` for visual confirmation
-4. Targeted `mcp__chrome-devtools__click` / `fill` interactions to confirm behavior
-5. Attach screenshot evidence to the PR description
+RN Web renders to the DOM. CDT can drive it like any web app. Do NOT skip CDT verification by claiming "the app is React Native." If acceptance criteria describe a user-visible behavior, CDT applies.
 
-### CDT verification (AFK / headless mode)
+### CDT verification works in BOTH modes
 
-When invoked by `scripts/agent-tick.sh`, you have no browser session. Your job:
-1. Verify logic contracts via unit tests (write new tests for new contracts)
-2. Verify type-safety via typecheck
-3. Carefully read your own diff before committing — trace every acceptance criterion against the code
-4. Note in your final summary which criteria are unit-tested vs which require post-merge CDT
+CDT MCP is available in interactive mode AND in AFK headless mode (via `scripts/agent-tick.sh`). Earlier versions of this prompt claimed AFK agents had "no browser session" — that was wrong. You do. Use it.
 
-The orchestrator (Claude in interactive mode) performs CDT verification against the Vercel production deploy after your PR merges to main. URL: `https://iron-quest-auesuguis-projects.vercel.app/`
+**For UI issues, in either mode:**
+
+1. Start the dev server: `npm run web` (background). If port 8081 is taken (e.g., orchestrator left it running), use a different port: `npm run web -- --port 8082`.
+2. Wait for "Web Bundled" in the output before driving CDT.
+3. For each acceptance criterion, drive the user flow and capture proof:
+   - `mcp__chrome-devtools__navigate_page` to the starting route
+   - `mcp__chrome-devtools__take_snapshot` for the a11y tree
+   - `mcp__chrome-devtools__click` / `fill` to drive interactions
+   - `mcp__chrome-devtools__take_screenshot` for visual confirmation on key transitions
+4. Stop the dev server before committing.
+5. Reference snapshot evidence in your summary file.
+
+### If CDT genuinely fails
+
+You may emit `verification_status: test-only` ONLY after actually attempting CDT. The summary must:
+- Document what you tried (commands, errors)
+- List each unverified acceptance criterion explicitly
+- Explain why CDT couldn't verify it
+
+The orchestrator does CDT before merge. **You have not "finished" the issue — you've handed off an unfinished issue with explicit gaps.** This is acceptable; silently deferring is not.
+
+### Shadow calculator guard (load-bearing)
+
+Before claiming `browser-checked` on any calculation-touching work, grep `app/` for hand-rolled math that mirrors engine functions. Two calculators that should be one is a bug. The 2026-06-23 FP fracture (issue #4) was exactly this — the production summary used a shadow calculator that bypassed the real engine.
+
+Pattern to watch for:
+- A function in `app/` whose name resembles an engine function (e.g., `calculateWorkoutSummary` vs `calculateSessionFP`)
+- Comments like `// simplified - would need X for real` in app code
+- Any "adapter" that re-implements engine logic instead of calling it
+
+Fix pattern: UIs call engines, they don't re-implement them. Thin adapter over the engine call, never a parallel implementation.
+
+### Required summary structure
+
+When writing the summary file (`$SUMMARY_FILE` for AFK runs, or PR body content for interactive work), include this section at the TOP:
+
+```markdown
+## Verification status
+
+status: browser-checked  # or test-only
+evidence:
+  - <snapshot path + what it proves>
+  - <test counts>
+unverified_criteria: none  # or explicit list
+```
 
 ### Playwright
 

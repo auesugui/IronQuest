@@ -108,18 +108,41 @@ echo ""
   echo ""
   echo "Instructions:"
   echo "1. Read the issue body completely. Re-read any docs or source files the issue references."
-  echo "2. Implement every acceptance criterion in the issue."
-  echo "3. Run every verification step listed in the issue. All must pass before you finish."
-  echo "4. Once verifications pass, commit your work with a conventional commit format, e.g.:"
+  echo "2. **Classify the issue** by reading its acceptance criteria:"
+  echo "   - **Logic-only** (no UI surface — pure store/engine/types) → verification_status: test-only is acceptable"
+  echo "   - **UI-surfacing** (user sees anything change) → verification_status: browser-checked is REQUIRED"
+  echo "3. Implement every acceptance criterion in the issue."
+  echo "4. Run pre-commit gates: \`npm run typecheck\`, \`npm run lint\`, \`npm test\`. All must pass."
+  echo "5. **For UI-surfacing criteria, perform CDT browser verification** — do NOT defer to the orchestrator:"
+  echo "   - Start the dev server in the worktree: \`npm run web\` (background). If port 8081 is taken, use \`npm run web -- --port 8082\`."
+  echo "   - Wait for 'Web Bundled' in the output before driving CDT."
+  echo "   - Drive CDT MCP through each acceptance criterion. Capture snapshots proving each passes."
+  echo "   - Reference snapshot evidence in the summary file."
+  echo "   - Stop the dev server before committing (kill the background process)."
+  echo "   CDT MCP is available headless — the old claim that AFK agents 'have no browser session' was wrong."
+  echo "6. Run the shadow calculator guard: grep \`app/\` for hand-rolled math that mirrors engine functions."
+  echo "   Two calculators that should be one is a bug. See engineer prompt's 'Shadow calculator guard' section."
+  echo "7. Once verifications pass, commit your work with a conventional commit format, e.g.:"
   echo "   \"feat: <short summary> (#$ISSUE)\""
-  echo "5. **Before exiting, write a markdown summary of your work to:**"
+  echo "8. **Before exiting, write a markdown summary of your work to:**"
   echo "   \`$SUMMARY_FILE\`"
-  echo "   The summary becomes the PR body. Include:"
+  echo "   The summary becomes the PR body. It MUST start with this section at the very top:"
+  echo "   "
+  echo "   \`\`\`markdown"
+  echo "   ## Verification status"
+  echo "   "
+  echo "   status: browser-checked  # or: test-only"
+  echo "   evidence:"
+  echo "     - <what was checked and how>"
+  echo "     - <test counts: e.g., '241/241 jest pass'>"
+  echo "   unverified_criteria: none  # explicit list if status is test-only"
+  echo "   \`\`\`"
+  echo "   "
+  echo "   Then include:"
   echo "   - What you found when investigating (was the work already partly done?)"
   echo "   - What you changed (files + brief rationale)"
-  echo "   - How you verified (test counts, typecheck status, manual checks)"
-  echo "   - Any criteria that need post-merge CDT verification by the orchestrator"
-  echo "6. DO NOT push. DO NOT open a PR. DO NOT perform any remote git operation."
+  echo "   - How you verified (test counts, typecheck status, CDT snapshots)"
+  echo "9. DO NOT push. DO NOT open a PR. DO NOT perform any remote git operation."
   echo ""
   echo "Your work will be pushed and a PR will be opened automatically after you exit."
   echo ""
@@ -158,6 +181,50 @@ fi
 git -C "$WORKTREE" log --oneline "${BASE_BRANCH}..HEAD"
 echo ""
 
+# --- Parse verification status from agent's summary -------------------------
+echo "=== Parsing verification status ==="
+
+# Required labels: create idempotently if missing. Colors follow traffic-light convention.
+# Create once per repo; --force would clobber user edits, so use the missing-check pattern.
+for label_spec in "verification-browser-checked:22863A" \
+                  "verification-test-only:B54708" \
+                  "verification-unknown:9F1B1B"; do
+  label_name="${label_spec%%:*}"
+  label_color="${label_spec##*:}"
+  if ! gh label list --repo "$REPO" --json name --jq '.[].name' 2>/dev/null \
+       | grep -qx "$label_name"; then
+    gh label create "$label_name" --color "$label_color" --repo "$REPO" \
+      --description "Agent self-reported verification status" 2>/dev/null \
+      || echo "  (could not create label '$label_name' — PR will fall back to single label)"
+  fi
+done
+
+if [[ -f "$SUMMARY_FILE" && -s "$SUMMARY_FILE" ]]; then
+  STATUS=$(awk '/^## Verification status/{flag=1; next} flag && /^status:/{print $2; exit}' "$SUMMARY_FILE")
+  case "$STATUS" in
+    browser-checked)
+      VERIFICATION_LABEL="verification-browser-checked"
+      VERIFICATION_BADGE="🟢 browser-checked"
+      ;;
+    test-only)
+      VERIFICATION_LABEL="verification-test-only"
+      VERIFICATION_BADGE="🟡 test-only — orchestrator must CDT before merge"
+      ;;
+    *)
+      STATUS="unknown"
+      VERIFICATION_LABEL="verification-unknown"
+      VERIFICATION_BADGE="🔴 unknown — status missing or malformed in summary"
+      echo "  WARNING: could not parse verification status; defaulting to unknown"
+      ;;
+  esac
+else
+  STATUS="missing"
+  VERIFICATION_LABEL="verification-unknown"
+  VERIFICATION_BADGE="🔴 missing — no summary file written"
+fi
+echo "  Status: $STATUS"
+echo ""
+
 # --- Push and open PR -------------------------------------------------------
 echo "=== Pushing branch ==="
 git -C "$WORKTREE" push -u origin "$BRANCH"
@@ -166,9 +233,12 @@ echo ""
 echo "=== Opening PR ==="
 
 # Use agent's summary as PR body if it wrote one; fall back to boilerplate.
+# Either way, surface verification_status at the very top — never bury it.
 if [[ -f "$SUMMARY_FILE" && -s "$SUMMARY_FILE" ]]; then
   AGENT_SUMMARY=$(cat "$SUMMARY_FILE")
-  PR_BODY="## Summary
+  PR_BODY="## Verification: $VERIFICATION_BADGE
+
+---
 
 $AGENT_SUMMARY
 
@@ -185,7 +255,9 @@ Resolves #$ISSUE
 🤖 Generated by IronQuest AFK agent tick"
 else
   echo "WARNING: no summary file at $SUMMARY_FILE, using boilerplate PR body"
-  PR_BODY="## Summary
+  PR_BODY="## Verification: $VERIFICATION_BADGE
+
+---
 
 Resolves #$ISSUE
 
@@ -209,7 +281,18 @@ $ISSUE_URL
 🤖 Generated by IronQuest AFK agent tick"
 fi
 
+# Two-label create with graceful fallback: if the verification label is somehow
+# missing despite the create-loop above, retry with just agent-generated.
 PR_URL=$(gh pr create \
+  --repo "$REPO" \
+  --base "$BASE_BRANCH" \
+  --head "$BRANCH" \
+  --title "[$ISSUE] $ISSUE_TITLE" \
+  --body "$PR_BODY" \
+  --label agent-generated \
+  --label "$VERIFICATION_LABEL" \
+  2>/dev/null \
+  || gh pr create \
   --repo "$REPO" \
   --base "$BASE_BRANCH" \
   --head "$BRANCH" \
