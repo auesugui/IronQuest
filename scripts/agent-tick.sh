@@ -35,7 +35,10 @@ BRANCH="agent/issue-$ISSUE"
 WORKTREE="$WORKTREE_BASE/issue-$ISSUE"
 LOG_FILE="$RUNS_DIR/issue-$ISSUE.log"
 PROMPT_FILE="$RUNS_DIR/issue-$ISSUE.prompt"
-SUMMARY_FILE="$RUNS_DIR/issue-$ISSUE.summary.md"
+# Absolute path — the agent runs inside the worktree, so a relative path would
+# land in the wrong directory. Resolve against the repo root up front.
+REPO_ROOT="$(pwd)"
+SUMMARY_FILE="$REPO_ROOT/$RUNS_DIR/issue-$ISSUE.summary.md"
 
 # --- Preflight --------------------------------------------------------------
 echo "=== Preflight ==="
