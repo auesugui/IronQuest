@@ -2,15 +2,15 @@
 // IronQuest Workout Session Screen
 // =============================================================================
 
-import { View, Text, StyleSheet, Pressable, ScrollView } from 'react-native';
 import { router } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { colors, spacing, textStyles, radius } from '@/theme';
-import { useWorkoutStore, useWeightHistoryStore } from '@/stores';
-import { haptics } from '@/utils/haptics';
 import { SetInputModal } from '@/components/workout/SetInputModal';
+import { useWeightHistoryStore, useWorkoutStore } from '@/stores';
+import { colors, radius, spacing, textStyles } from '@/theme';
+import { haptics } from '@/utils/haptics';
 
 interface SetEditState {
   exerciseIndex: number;
@@ -136,11 +136,15 @@ export default function WorkoutSessionScreen() {
 
   const handleFinishWorkout = () => {
     haptics.success();
+    const { intent } = useWorkoutStore.getState();
     // Navigate to summary with workout data
     const workoutData = {
       exercises: JSON.stringify(exercises),
-      duration: Math.floor((Date.now() - (useWorkoutStore.getState().startedAt || Date.now())) / 1000),
+      duration: Math.floor(
+        (Date.now() - (useWorkoutStore.getState().startedAt || Date.now())) / 1000
+      ),
       streakDays: 0, // TODO: Get from streak store when implemented
+      intent,
     };
     router.replace({
       pathname: '/workout/summary',
@@ -216,13 +220,8 @@ export default function WorkoutSessionScreen() {
       {/* Rest Timer Overlay */}
       {restTimer.running && (
         <Pressable style={styles.restOverlay} onPress={handleSkipRest}>
-          <Text style={styles.restLabel}>
-            {restTimer.paused ? 'Paused' : 'Rest'}
-          </Text>
-          <Text style={[
-            styles.restTimer,
-            restTimer.remaining === 0 && styles.restTimerReady,
-          ]}>
+          <Text style={styles.restLabel}>{restTimer.paused ? 'Paused' : 'Rest'}</Text>
+          <Text style={[styles.restTimer, restTimer.remaining === 0 && styles.restTimerReady]}>
             {formatTime(restTimer.remaining)}
           </Text>
 
@@ -237,9 +236,7 @@ export default function WorkoutSessionScreen() {
                   handleTogglePause();
                 }}
               >
-                <Text style={styles.restControlText}>
-                  {restTimer.paused ? 'Resume' : 'Pause'}
-                </Text>
+                <Text style={styles.restControlText}>{restTimer.paused ? 'Resume' : 'Pause'}</Text>
               </Pressable>
               <Pressable
                 style={styles.restControlButton}
@@ -264,10 +261,9 @@ export default function WorkoutSessionScreen() {
           disabled={currentExerciseIndex === 0}
           style={styles.navArrow}
         >
-          <Text style={[
-            styles.navArrowText,
-            currentExerciseIndex === 0 && styles.navArrowDisabled,
-          ]}>
+          <Text
+            style={[styles.navArrowText, currentExerciseIndex === 0 && styles.navArrowDisabled]}
+          >
             {'<'}
           </Text>
         </Pressable>
@@ -285,15 +281,10 @@ export default function WorkoutSessionScreen() {
       </View>
 
       {/* Current Exercise */}
-      <ScrollView
-        style={styles.exerciseScroll}
-        contentContainerStyle={styles.exerciseContent}
-      >
+      <ScrollView style={styles.exerciseScroll} contentContainerStyle={styles.exerciseContent}>
         <View style={styles.exerciseCard}>
           <Text style={styles.exerciseName}>{currentExercise.name}</Text>
-          <Text style={styles.exerciseMeta}>
-            {currentExercise.muscleGroups.join(', ')}
-          </Text>
+          <Text style={styles.exerciseMeta}>{currentExercise.muscleGroups.join(', ')}</Text>
 
           {/* Sets */}
           <View style={styles.setsContainer}>
@@ -302,14 +293,9 @@ export default function WorkoutSessionScreen() {
                 <Text style={styles.setNumber}>Set {index + 1}</Text>
 
                 {set.logged ? (
-                  <Pressable
-                    style={styles.loggedSet}
-                    onPress={() => handleEditSet(index)}
-                  >
+                  <Pressable style={styles.loggedSet} onPress={() => handleEditSet(index)}>
                     <Text style={styles.loggedReps}>{set.reps} reps</Text>
-                    {set.weight && (
-                      <Text style={styles.loggedWeight}>@ {set.weight} lb</Text>
-                    )}
+                    {set.weight && <Text style={styles.loggedWeight}>@ {set.weight} lb</Text>}
                     {set.isPR && <Text style={styles.prBadge}>PR!</Text>}
                     <Text style={styles.editHint}>tap to edit</Text>
                   </Pressable>
@@ -345,12 +331,16 @@ export default function WorkoutSessionScreen() {
             styles.navButton,
             currentExerciseIndex >= exercises.length - 1 && styles.finishButton,
           ]}
-          onPress={currentExerciseIndex >= exercises.length - 1 ? handleFinishWorkout : handleNextExercise}
+          onPress={
+            currentExerciseIndex >= exercises.length - 1 ? handleFinishWorkout : handleNextExercise
+          }
         >
-          <Text style={[
-            styles.navButtonText,
-            currentExerciseIndex >= exercises.length - 1 && styles.navButtonTextFinish,
-          ]}>
+          <Text
+            style={[
+              styles.navButtonText,
+              currentExerciseIndex >= exercises.length - 1 && styles.navButtonTextFinish,
+            ]}
+          >
             {currentExerciseIndex < exercises.length - 1
               ? `Next: ${exercises[currentExerciseIndex + 1]?.name}`
               : 'Finish Workout'}
@@ -358,11 +348,7 @@ export default function WorkoutSessionScreen() {
         </Pressable>
 
         {/* Exercise List */}
-        <ScrollView
-          style={styles.exerciseList}
-          horizontal
-          showsHorizontalScrollIndicator={false}
-        >
+        <ScrollView style={styles.exerciseList} horizontal showsHorizontalScrollIndicator={false}>
           {exercises.map((exercise, index) => (
             <Pressable
               key={exercise.id}
