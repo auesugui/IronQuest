@@ -8,6 +8,7 @@ import { useEffect } from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import {
+  useBaselineStore,
   usePRStore,
   usePetStore,
   usePlayerStore,
@@ -25,6 +26,7 @@ export default function RootLayout() {
   const hydrateSettings = useSettingsStore((state) => state.hydrate);
   const hydrateWeightHistory = useWeightHistoryStore((state) => state.hydrate);
   const hydratePR = usePRStore((state) => state.hydrate);
+  const hydrateBaseline = useBaselineStore((state) => state.hydrate);
   const theme = useSettingsStore((state) => state.theme);
 
   // Hydrate all stores on mount
@@ -39,6 +41,7 @@ export default function RootLayout() {
           hydrateSettings(),
           hydrateWeightHistory(),
           hydratePR(),
+          hydrateBaseline(),
         ]);
       } catch (error) {
         console.warn('Storage initialization error:', error);
@@ -46,7 +49,15 @@ export default function RootLayout() {
     };
 
     init();
-  }, [hydratePlayer, hydratePet, hydrateWorkout, hydrateSettings, hydrateWeightHistory, hydratePR]);
+  }, [
+    hydratePlayer,
+    hydratePet,
+    hydrateWorkout,
+    hydrateSettings,
+    hydrateWeightHistory,
+    hydratePR,
+    hydrateBaseline,
+  ]);
 
   // Determine color scheme
   const isDark = theme === 'dark' || theme === 'system';

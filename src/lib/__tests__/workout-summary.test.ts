@@ -143,3 +143,94 @@ describe('calculateWorkoutSummary — display aggregates', () => {
     expect(summary.totalReps).toBe(18);
   });
 });
+
+describe('calculateWorkoutSummary — Personal Baseline relative scaling', () => {
+  it('falls back to absolute volume when no baseline is provided', () => {
+    // Same setup as the normal-intent test: 30 reps = 3 volume FP.
+    const exercises: Exercise[] = [
+      makeExercise({
+        sets: [
+          makeSet({ reps: 10, weight: 135 }),
+          makeSet({ reps: 10, weight: 135 }),
+          makeSet({ reps: 10, weight: 135 }),
+        ],
+      }),
+    ];
+
+    const summary = calculateWorkoutSummary(exercises, 600, 0, 'normal');
+
+    expect(summary.breakdown.volumeBonus).toBe(3); // 30 reps / 10
+  });
+
+  it('applies relative scaling when a baseline is provided', () => {
+    // Baseline = 1000 (e.g. 100 lb × 10 reps historical max).
+    // Session max = 135 × 10 = 1350.
+    // % above baseline = (1350/1000 - 1) × 100 = 35%.
+    // Expected volume FP = 35.
+    const exercises: Exercise[] = [
+      makeExercise({
+        id: 'bench-press',
+        sets: [makeSet({ reps: 10, weight: 135 })],
+      }),
+    ];
+    const baselines = { 'bench-press': 1000 };
+
+    const summary = calculateWorkoutSummary(exercises, 600, 0, 'normal', baselines);
+
+    expect(summary.breakdown.volumeBonus).toBe(35);
+    // 100 base + 35 volume = 135
+    expect(summary.totalFP).toBe(135);
+  });
+
+  it('caps total volume bonus at maxBonusPerSession (50)', () => {
+    // Baseline = 100. Session max = 200. % above = 100%. Would be +100 FP uncapped.
+    // Should be capped at 50 (FP_CONFIG.volume.maxBonusPerSession).
+    const exercises: Exercise[] = [
+      makeExercise({
+        id: 'bench-press',
+        sets: [makeSet({ reps: 10, weight: 200 })],
+      }),
+    ];
+    const baselines = { 'bench-press': 100 };
+
+    const summary = calculateWorkoutSummary(exercises, 600, 0, 'normal', baselines);
+
+    expect(summary.breakdown.volumeBonus).toBe(50);
+  });
+
+  it('handles mixed baseline/no-baseline exercises within one session', () => {
+    // Exercise 1: has baseline (relative scaling).
+    // Exercise 2: no baseline (absolute fallback).
+    const exercises: Exercise[] = [
+      makeExercise({
+        id: 'bench-press',
+        sets: [makeSet({ reps: 10, weight: 110 })], // session max 1100; +10% over baseline 1000 → +10
+      }),
+      makeExercise({
+        id: 'squat',
+        sets: [makeSet({ reps: 10, weight: null })], // absolute: 10 reps → +1
+      }),
+    ];
+    const baselines = { 'bench-press': 1000 };
+
+    const summary = calculateWorkoutSummary(exercises, 600, 0, 'normal', baselines);
+
+    // 10 (relative) + 1 (absolute) = 11 volume FP
+    expect(summary.breakdown.volumeBonus).toBe(11);
+  });
+
+  it('ignores baseline when session max does not exceed it (no negative FP)', () => {
+    // Baseline 2000, session max 1500 → below baseline. Should contribute 0, not negative.
+    const exercises: Exercise[] = [
+      makeExercise({
+        id: 'bench-press',
+        sets: [makeSet({ reps: 10, weight: 150 })], // session max 1500
+      }),
+    ];
+    const baselines = { 'bench-press': 2000 };
+
+    const summary = calculateWorkoutSummary(exercises, 600, 0, 'normal', baselines);
+
+    expect(summary.breakdown.volumeBonus).toBe(0);
+  });
+});

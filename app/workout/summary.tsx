@@ -8,7 +8,7 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { type WorkoutSummary, calculateWorkoutSummary } from '@/lib/workout-summary';
-import { usePetStore, usePlayerStore, useWorkoutStore } from '@/stores';
+import { useBaselineStore, usePetStore, usePlayerStore, useWorkoutStore } from '@/stores';
 import { colors, radius, spacing, textStyles } from '@/theme';
 import type { Exercise, SessionIntent } from '@/types';
 import { haptics } from '@/utils/haptics';
@@ -33,7 +33,22 @@ export default function WorkoutSummaryScreen() {
         const streakDays = Number.parseInt((params.streakDays as string) || '0', 10);
         const intent = ((params.intent as string) || 'normal') as SessionIntent;
 
-        const workoutSummary = calculateWorkoutSummary(exercises, duration, streakDays, intent);
+        // Collect per-exercise baselines for relative FP scaling. Null baselines
+        // are omitted; the engine falls back to absolute volume calc for those.
+        const baselineStore = useBaselineStore.getState();
+        const baselines: Record<string, number> = {};
+        for (const ex of exercises) {
+          const b = baselineStore.getBaseline(ex.id);
+          if (b !== null) baselines[ex.id] = b;
+        }
+
+        const workoutSummary = calculateWorkoutSummary(
+          exercises,
+          duration,
+          streakDays,
+          intent,
+          Object.keys(baselines).length > 0 ? baselines : undefined
+        );
         setSummary(workoutSummary);
       } catch (e) {
         console.error('Failed to parse workout summary:', e);
@@ -57,6 +72,19 @@ export default function WorkoutSummaryScreen() {
 
       // Increment workout count
       usePlayerStore.getState().incrementWorkoutCount();
+
+      // Update per-exercise baselines for future relative-FP scaling.
+      // Session max = highest weight × reps across logged sets.
+      const baselineStore = useBaselineStore.getState();
+      for (const ex of summary.exercises) {
+        const loggedSets = ex.sets.filter((s) => s.logged);
+        if (loggedSets.length === 0) continue;
+        const sessionMax = loggedSets.reduce(
+          (max, s) => Math.max(max, (s.weight ?? 0) * (s.reps ?? 0)),
+          0
+        );
+        if (sessionMax > 0) baselineStore.recordSession(ex.id, sessionMax);
+      }
     }
 
     // End the session and go home

@@ -27,7 +27,8 @@ export function calculateWorkoutSummary(
   exercises: Exercise[],
   duration: number,
   streakDays: number,
-  intent: SessionIntent
+  intent: SessionIntent,
+  baselines?: Record<string, number>
 ): WorkoutSummary {
   const session: WorkoutSession = {
     active: false,
@@ -49,10 +50,12 @@ export function calculateWorkoutSummary(
     }
   }
 
-  const result = calculateSessionFP(session, streakDays, {
-    weight: weightPRs,
-    rep: repPRs,
-  });
+  const result = calculateSessionFP(
+    session,
+    streakDays,
+    { weight: weightPRs, rep: repPRs },
+    baselines
+  );
 
   // Display-only aggregates the engine doesn't return.
   const loggedSets = exercises.flatMap((e) => e.sets.filter((s) => s.logged));
