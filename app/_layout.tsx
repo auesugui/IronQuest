@@ -5,6 +5,7 @@
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
+import { Platform } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import {
@@ -58,6 +59,13 @@ export default function RootLayout() {
     hydratePR,
     hydrateBaseline,
   ]);
+
+  // Document title for web (browser tab, home-screen icon label, SEO).
+  useEffect(() => {
+    if (Platform.OS === 'web') {
+      document.title = 'IronQuest';
+    }
+  }, []);
 
   // Determine color scheme
   const isDark = theme === 'dark' || theme === 'system';

@@ -129,7 +129,7 @@ export default function TemplateDetailScreen() {
       {/* Start Button */}
       <View style={styles.startSection}>
         <Pressable style={styles.startButton} onPress={handleStartWorkout}>
-          <Text style={styles.startButtonText}>Start {selectedDay?.shortName} Workout</Text>
+          <Text style={styles.startButtonText}>Review {selectedDay?.shortName} & Start</Text>
         </Pressable>
         <Text style={styles.startHint}>
           {selectedDay?.exercises.length ?? 0} exercises • ~{template.estimatedDuration} min
