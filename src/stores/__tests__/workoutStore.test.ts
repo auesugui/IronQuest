@@ -3,9 +3,15 @@
 // =============================================================================
 // Tests for session lifecycle, exercise management, set logging, rest timer
 
-import { useWorkoutStore, selectSessionDuration, selectExerciseProgress, selectIsRestTimerComplete } from '../workoutStore';
-import { appStorage, STORAGE_KEYS } from '@/utils/storage';
+import type { Exercise } from '@/types';
+import { STORAGE_KEYS, appStorage } from '@/utils/storage';
 import { useWeightHistoryStore } from '../weightHistoryStore';
+import {
+  selectExerciseProgress,
+  selectIsRestTimerComplete,
+  selectSessionDuration,
+  useWorkoutStore,
+} from '../workoutStore';
 
 // Mock dependencies
 jest.mock('@/utils/storage', () => ({
@@ -61,6 +67,18 @@ describe('Workout Store', () => {
     },
   ];
 
+  // Helper to build a minimal but fully-typed Exercise[] for intent tests.
+  const makeIntentExercises = (): Exercise[] => [
+    {
+      id: 'intent-test-ex',
+      name: 'Test Exercise',
+      muscleGroups: [],
+      sets: [],
+      restSeconds: 60,
+      completed: false,
+    },
+  ];
+
   // ---------------------------------------------------------------------------
   // Session Lifecycle
   // ---------------------------------------------------------------------------
@@ -106,6 +124,42 @@ describe('Workout Store', () => {
         startSession('template-1', [{ id: 'test', name: 'Test', sets: [] }]);
 
         expect(appStorage.setJSON).toHaveBeenCalled();
+      });
+
+      it('should default intent to normal when no intent is provided', () => {
+        const { startSession } = useWorkoutStore.getState();
+
+        startSession('template-1', makeIntentExercises());
+
+        expect(useWorkoutStore.getState().intent).toBe('normal');
+      });
+
+      it('should accept a deload intent and persist it on the session', () => {
+        const { startSession } = useWorkoutStore.getState();
+
+        startSession('template-1', makeIntentExercises(), 'deload');
+
+        expect(useWorkoutStore.getState().intent).toBe('deload');
+      });
+    });
+
+    describe('setIntent', () => {
+      it('should update the intent on the active session', () => {
+        const { startSession, setIntent } = useWorkoutStore.getState();
+
+        startSession('template-1', makeIntentExercises());
+        setIntent('deload');
+
+        expect(useWorkoutStore.getState().intent).toBe('deload');
+      });
+
+      it('should reset intent to normal when a new session starts', () => {
+        const { startSession } = useWorkoutStore.getState();
+
+        startSession('template-1', makeIntentExercises(), 'deload');
+        startSession('template-2', makeIntentExercises());
+
+        expect(useWorkoutStore.getState().intent).toBe('normal');
       });
     });
 

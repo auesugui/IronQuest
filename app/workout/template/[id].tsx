@@ -2,23 +2,19 @@
 // IronQuest Template Detail Screen
 // =============================================================================
 
-import { View, Text, StyleSheet, ScrollView, Pressable } from 'react-native';
-import { useLocalSearchParams, router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useState } from 'react';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
-import { colors, spacing, textStyles, radius } from '@/theme';
-import { getTemplateById, getExerciseById, type WorkoutTemplateDefinition, type TemplateDay } from '@/data';
 import { RadarChart } from '@/components/progress/RadarChart';
-import { useWorkoutStore } from '@/stores';
+import { type WorkoutTemplateDefinition, getExerciseById, getTemplateById } from '@/data';
+import { colors, radius, spacing, textStyles } from '@/theme';
 import { haptics } from '@/utils/haptics';
-import type { Exercise } from '@/types';
 
 export default function TemplateDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const [template, setTemplate] = useState<WorkoutTemplateDefinition | null>(null);
   const [selectedDayIndex, setSelectedDayIndex] = useState(0);
-
-  const startSession = useWorkoutStore((state) => state.startSession);
 
   useEffect(() => {
     if (id) {
@@ -44,28 +40,10 @@ export default function TemplateDetailScreen() {
 
   const handleStartWorkout = () => {
     haptics.success();
-
-    // Convert template exercises to workout exercises
-    const exercises: Exercise[] = selectedDay.exercises.map((templateEx, index) => {
-      const exerciseDef = getExerciseById(templateEx.exerciseId);
-      return {
-        id: `${templateEx.exerciseId}-${index}`,
-        name: exerciseDef?.name ?? 'Unknown Exercise',
-        muscleGroups: exerciseDef?.muscleGroups ?? [],
-        sets: Array.from({ length: templateEx.sets }, () => ({
-          reps: null,
-          weight: null,
-          logged: false,
-          isPR: false,
-          isRepPR: false,
-        })),
-        restSeconds: templateEx.restSeconds,
-        completed: false,
-      };
+    router.push({
+      pathname: '/workout/loadout',
+      params: { templateId: template.id, dayIndex: selectedDayIndex.toString() },
     });
-
-    startSession(template.id, exercises, 'normal');
-    router.replace('/workout/session');
   };
 
   const handleDaySelect = (index: number) => {
@@ -91,11 +69,7 @@ export default function TemplateDetailScreen() {
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Overall FP Distribution</Text>
         <View style={styles.radarContainer}>
-          <RadarChart
-            values={template.totalFpDistribution}
-            size={180}
-            showLabels={true}
-          />
+          <RadarChart values={template.totalFpDistribution} size={180} showLabels={true} />
         </View>
       </View>
 
@@ -110,10 +84,7 @@ export default function TemplateDetailScreen() {
               onPress={() => handleDaySelect(index)}
             >
               <Text
-                style={[
-                  styles.dayTabText,
-                  index === selectedDayIndex && styles.dayTabTextActive,
-                ]}
+                style={[styles.dayTabText, index === selectedDayIndex && styles.dayTabTextActive]}
               >
                 {day.shortName}
               </Text>
