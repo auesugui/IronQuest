@@ -5,7 +5,7 @@
 // Prerequisites: Expo web server running (npm run web)
 // =============================================================================
 
-import { test, expect } from '@playwright/test';
+import { expect, test } from '@playwright/test';
 
 // Mobile viewport constants
 const MOBILE_VIEWPORT = { width: 390, height: 844 };
@@ -72,8 +72,12 @@ test.describe('Stat Persistence', () => {
     await page.setViewportSize(MOBILE_VIEWPORT);
 
     // Capture browser console logs
-    page.on('console', msg => {
-      if (msg.text().includes('[') || msg.text().includes('Hydration') || msg.text().includes('Store')) {
+    page.on('console', (msg) => {
+      if (
+        msg.text().includes('[') ||
+        msg.text().includes('Hydration') ||
+        msg.text().includes('Store')
+      ) {
         console.log(`[Browser] ${msg.text()}`);
       }
     });
@@ -83,16 +87,19 @@ test.describe('Stat Persistence', () => {
     await page.waitForLoadState('networkidle');
 
     // Now seed initial state via localStorage
-    await page.evaluate((initialState) => {
-      // Set player state - key matches STORAGE_KEYS.PLAYER.FULL_STATE
-      localStorage.setItem('player.full_state', JSON.stringify(initialState.player));
-      // Set pet state - key matches STORAGE_KEYS.PET.FULL_STATE
-      localStorage.setItem('pet.full_state', JSON.stringify(initialState.pet));
+    await page.evaluate(
+      (initialState) => {
+        // Set player state - key matches STORAGE_KEYS.PLAYER.FULL_STATE
+        localStorage.setItem('player.full_state', JSON.stringify(initialState.player));
+        // Set pet state - key matches STORAGE_KEYS.PET.FULL_STATE
+        localStorage.setItem('pet.full_state', JSON.stringify(initialState.pet));
 
-      // Debug: log what was set
-      console.log('Set player data:', localStorage.getItem('player.full_state'));
-      console.log('Set pet data:', localStorage.getItem('pet.full_state'));
-    }, { player: INITIAL_PLAYER_STATE, pet: INITIAL_PET_STATE });
+        // Debug: log what was set
+        console.log('Set player data:', localStorage.getItem('player.full_state'));
+        console.log('Set pet data:', localStorage.getItem('pet.full_state'));
+      },
+      { player: INITIAL_PLAYER_STATE, pet: INITIAL_PET_STATE }
+    );
 
     // Reload to trigger hydration with the new data
     await page.reload();
@@ -132,7 +139,7 @@ test.describe('Stat Persistence', () => {
     // Get the available FP before upgrade
     const fpCard = page.locator('text=Available FP').locator('..');
     const fpText = await fpCard.textContent();
-    const initialTotalFP = parseInt(fpText?.match(/\d+/)?.[0] || '0', 10);
+    const initialTotalFP = Number.parseInt(fpText?.match(/\d+/)?.[0] || '0', 10);
     console.log(`Initial Total FP: ${initialTotalFP}`);
 
     // Click the first +1 button (should be Power since it's first in the list)
@@ -141,7 +148,7 @@ test.describe('Stat Persistence', () => {
 
     // Verify FP decreased
     const fpTextAfter = await fpCard.textContent();
-    const afterTotalFP = parseInt(fpTextAfter?.match(/\d+/)?.[0] || '0', 10);
+    const afterTotalFP = Number.parseInt(fpTextAfter?.match(/\d+/)?.[0] || '0', 10);
     console.log(`After upgrade Total FP: ${afterTotalFP}`);
 
     // Should have spent 5 FP (cost for stats 0-9)
@@ -160,7 +167,7 @@ test.describe('Stat Persistence', () => {
 
     // Verify FP persisted (should still be lower than initial)
     const fpTextPersisted = await fpCard.textContent();
-    const persistedTotalFP = parseInt(fpTextPersisted?.match(/\d+/)?.[0] || '0', 10);
+    const persistedTotalFP = Number.parseInt(fpTextPersisted?.match(/\d+/)?.[0] || '0', 10);
     console.log(`After refresh Total FP: ${persistedTotalFP}`);
 
     expect(persistedTotalFP).toBe(afterTotalFP);
@@ -177,7 +184,7 @@ test.describe('Stat Persistence', () => {
     // Get the available FP before upgrade
     const fpCard = page.locator('text=Available FP').locator('..');
     const fpText = await fpCard.textContent();
-    const initialTotalFP = parseInt(fpText?.match(/\d+/)?.[0] || '0', 10);
+    const initialTotalFP = Number.parseInt(fpText?.match(/\d+/)?.[0] || '0', 10);
     console.log(`Initial Total FP: ${initialTotalFP}`);
 
     // Find Spirit stat row and its +1 button
@@ -201,7 +208,7 @@ test.describe('Stat Persistence', () => {
 
     // Verify FP decreased by 10 (Spirit costs 10 FP)
     const fpTextAfter = await fpCard.textContent();
-    const afterTotalFP = parseInt(fpTextAfter?.match(/\d+/)?.[0] || '0', 10);
+    const afterTotalFP = Number.parseInt(fpTextAfter?.match(/\d+/)?.[0] || '0', 10);
     console.log(`After upgrade Total FP: ${afterTotalFP}`);
     expect(afterTotalFP).toBe(initialTotalFP - 10);
 
@@ -215,7 +222,7 @@ test.describe('Stat Persistence', () => {
 
     // Verify FP persisted
     const fpTextPersisted = await fpCard.textContent();
-    const persistedTotalFP = parseInt(fpTextPersisted?.match(/\d+/)?.[0] || '0', 10);
+    const persistedTotalFP = Number.parseInt(fpTextPersisted?.match(/\d+/)?.[0] || '0', 10);
     console.log(`After refresh Total FP: ${persistedTotalFP}`);
     expect(persistedTotalFP).toBe(afterTotalFP);
   });
@@ -228,7 +235,7 @@ test.describe('Stat Persistence', () => {
     // Get the available FP before upgrades
     const fpCard = page.locator('text=Available FP').locator('..');
     const fpText = await fpCard.textContent();
-    const initialTotalFP = parseInt(fpText?.match(/\d+/)?.[0] || '0', 10);
+    const initialTotalFP = Number.parseInt(fpText?.match(/\d+/)?.[0] || '0', 10);
     console.log(`Initial Total FP: ${initialTotalFP}`);
 
     // Click the first +1 button twice (Power)
@@ -245,7 +252,7 @@ test.describe('Stat Persistence', () => {
 
     // Verify FP decreased (2x5 + 5 = 15 FP spent)
     const fpTextAfter = await fpCard.textContent();
-    const afterTotalFP = parseInt(fpTextAfter?.match(/\d+/)?.[0] || '0', 10);
+    const afterTotalFP = Number.parseInt(fpTextAfter?.match(/\d+/)?.[0] || '0', 10);
     console.log(`After upgrades Total FP: ${afterTotalFP}`);
     expect(afterTotalFP).toBe(initialTotalFP - 15);
 
@@ -259,7 +266,7 @@ test.describe('Stat Persistence', () => {
 
     // Verify FP persisted
     const fpTextPersisted = await fpCard.textContent();
-    const persistedTotalFP = parseInt(fpTextPersisted?.match(/\d+/)?.[0] || '0', 10);
+    const persistedTotalFP = Number.parseInt(fpTextPersisted?.match(/\d+/)?.[0] || '0', 10);
     console.log(`After refresh Total FP: ${persistedTotalFP}`);
     expect(persistedTotalFP).toBe(afterTotalFP);
   });

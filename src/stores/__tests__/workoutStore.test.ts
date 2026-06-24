@@ -51,19 +51,25 @@ describe('Workout Store', () => {
   });
 
   // Helper to create valid exercises
-  const createTestExercises = () => [
+  const createTestExercises = (): Exercise[] => [
     {
       id: 'bench-press',
       name: 'Bench Press',
+      muscleGroups: ['chest', 'triceps'],
       sets: [
-        { reps: 10, weight: null, logged: false },
-        { reps: 10, weight: null, logged: false },
+        { reps: 10, weight: null, logged: false, isPR: false, isRepPR: false },
+        { reps: 10, weight: null, logged: false, isPR: false, isRepPR: false },
       ],
+      restSeconds: 120,
+      completed: false,
     },
     {
       id: 'squat',
       name: 'Squat',
-      sets: [{ reps: 8, weight: null, logged: false }],
+      muscleGroups: ['quads', 'glutes'],
+      sets: [{ reps: 8, weight: null, logged: false, isPR: false, isRepPR: false }],
+      restSeconds: 180,
+      completed: false,
     },
   ];
 
@@ -99,10 +105,28 @@ describe('Workout Store', () => {
       it('should reset current exercise index to 0', () => {
         const { startSession, setCurrentExercise } = useWorkoutStore.getState();
 
-        startSession('template-1', [{ id: 'test', name: 'Test', sets: [] }]);
+        startSession('template-1', [
+          {
+            id: 'test',
+            name: 'Test',
+            muscleGroups: [],
+            sets: [],
+            restSeconds: 60,
+            completed: false,
+          },
+        ]);
         setCurrentExercise(2);
 
-        startSession('template-2', [{ id: 'test2', name: 'Test 2', sets: [] }]);
+        startSession('template-2', [
+          {
+            id: 'test2',
+            name: 'Test 2',
+            muscleGroups: [],
+            sets: [],
+            restSeconds: 60,
+            completed: false,
+          },
+        ]);
 
         expect(useWorkoutStore.getState().currentExerciseIndex).toBe(0);
       });
@@ -110,7 +134,16 @@ describe('Workout Store', () => {
       it('should initialize rest timer as inactive', () => {
         const { startSession } = useWorkoutStore.getState();
 
-        startSession('template-1', [{ id: 'test', name: 'Test', sets: [] }]);
+        startSession('template-1', [
+          {
+            id: 'test',
+            name: 'Test',
+            muscleGroups: [],
+            sets: [],
+            restSeconds: 60,
+            completed: false,
+          },
+        ]);
 
         const { restTimer } = useWorkoutStore.getState();
         expect(restTimer.running).toBe(false);
@@ -121,7 +154,16 @@ describe('Workout Store', () => {
       it('should persist session to storage', () => {
         const { startSession } = useWorkoutStore.getState();
 
-        startSession('template-1', [{ id: 'test', name: 'Test', sets: [] }]);
+        startSession('template-1', [
+          {
+            id: 'test',
+            name: 'Test',
+            muscleGroups: [],
+            sets: [],
+            restSeconds: 60,
+            completed: false,
+          },
+        ]);
 
         expect(appStorage.setJSON).toHaveBeenCalled();
       });
@@ -167,7 +209,16 @@ describe('Workout Store', () => {
       it('should clear session state', () => {
         const { startSession, endSession } = useWorkoutStore.getState();
 
-        startSession('template-1', [{ id: 'test', name: 'Test', sets: [] }]);
+        startSession('template-1', [
+          {
+            id: 'test',
+            name: 'Test',
+            muscleGroups: [],
+            sets: [],
+            restSeconds: 60,
+            completed: false,
+          },
+        ]);
         endSession();
 
         const state = useWorkoutStore.getState();
@@ -178,7 +229,16 @@ describe('Workout Store', () => {
       it('should reset rest timer', () => {
         const { startSession, startRestTimer, endSession } = useWorkoutStore.getState();
 
-        startSession('template-1', [{ id: 'test', name: 'Test', sets: [] }]);
+        startSession('template-1', [
+          {
+            id: 'test',
+            name: 'Test',
+            muscleGroups: [],
+            sets: [],
+            restSeconds: 60,
+            completed: false,
+          },
+        ]);
         startRestTimer(90);
         endSession();
 
@@ -189,7 +249,16 @@ describe('Workout Store', () => {
       it('should delete session from storage', () => {
         const { startSession, endSession } = useWorkoutStore.getState();
 
-        startSession('template-1', [{ id: 'test', name: 'Test', sets: [] }]);
+        startSession('template-1', [
+          {
+            id: 'test',
+            name: 'Test',
+            muscleGroups: [],
+            sets: [],
+            restSeconds: 60,
+            completed: false,
+          },
+        ]);
         endSession();
 
         expect(appStorage.delete).toHaveBeenCalledWith(STORAGE_KEYS.SESSION.FULL_STATE);
@@ -200,7 +269,16 @@ describe('Workout Store', () => {
       it('should clear session without saving', () => {
         const { startSession, cancelSession } = useWorkoutStore.getState();
 
-        startSession('template-1', [{ id: 'test', name: 'Test', sets: [] }]);
+        startSession('template-1', [
+          {
+            id: 'test',
+            name: 'Test',
+            muscleGroups: [],
+            sets: [],
+            restSeconds: 60,
+            completed: false,
+          },
+        ]);
         cancelSession();
 
         expect(useWorkoutStore.getState().active).toBe(false);
@@ -297,10 +375,13 @@ describe('Workout Store', () => {
         {
           id: 'bench-press',
           name: 'Bench Press',
+          muscleGroups: ['chest', 'triceps'],
           sets: [
-            { reps: 10, weight: null, logged: false },
-            { reps: 10, weight: null, logged: false },
+            { reps: 10, weight: null, logged: false, isPR: false, isRepPR: false },
+            { reps: 10, weight: null, logged: false, isPR: false, isRepPR: false },
           ],
+          restSeconds: 120,
+          completed: false,
         },
       ]);
     });
@@ -346,7 +427,7 @@ describe('Workout Store', () => {
         });
 
         const { logSet } = useWorkoutStore.getState();
-        logSet(0, 0, 10, null);
+        logSet(0, 0, 10);
 
         expect(mockSaveWeight).not.toHaveBeenCalled();
       });
@@ -528,7 +609,16 @@ describe('Workout Store', () => {
       it('should restore session from storage', async () => {
         const mockSession = {
           active: true,
-          exercises: [{ id: 'test', name: 'Test', sets: [] }],
+          exercises: [
+            {
+              id: 'test',
+              name: 'Test',
+              muscleGroups: [],
+              sets: [],
+              restSeconds: 60,
+              completed: false,
+            },
+          ],
           currentExerciseIndex: 0,
         };
 
@@ -585,11 +675,14 @@ describe('Workout Store', () => {
           {
             id: 'ex1',
             name: 'Exercise 1',
+            muscleGroups: ['chest'],
             sets: [
-              { reps: 10, logged: true },
-              { reps: 10, logged: true },
-              { reps: 10, logged: false },
+              { reps: 10, weight: null, logged: true, isPR: false, isRepPR: false },
+              { reps: 10, weight: null, logged: true, isPR: false, isRepPR: false },
+              { reps: 10, weight: null, logged: false, isPR: false, isRepPR: false },
             ],
+            restSeconds: 60,
+            completed: false,
           },
         ]);
       });

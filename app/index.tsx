@@ -3,10 +3,10 @@
 // =============================================================================
 
 import { Redirect } from 'expo-router';
-import { View, ActivityIndicator, StyleSheet } from 'react-native';
+import { StyleSheet } from 'react-native';
 
-import { colors } from '@/theme';
 import { usePlayerStore } from '@/stores';
+import { colors } from '@/theme';
 
 export default function IndexScreen() {
   const hydrated = usePlayerStore((state) => state.fp.generic !== undefined);

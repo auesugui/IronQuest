@@ -119,15 +119,21 @@ function expect(actual) {
  * @param {number} params.streakDays - Current streak in days
  * @returns {{ totalFP: number, breakdown: Object }}
  */
-function calculateWorkoutFP({ baseFP = 100, totalReps, prCount = 0, repPRCount = 0, streakDays = 0 }) {
+function calculateWorkoutFP({
+  baseFP = 100,
+  totalReps,
+  prCount = 0,
+  repPRCount = 0,
+  streakDays = 0,
+}) {
   // Volume bonus: 1 FP per 10 reps
   const volumeBonus = Math.floor(totalReps / 10);
 
   // PR bonus: 50 FP per PR, 25 FP per rep PR
-  const prBonus = (prCount * 50) + (repPRCount * 25);
+  const prBonus = prCount * 50 + repPRCount * 25;
 
   // Streak multiplier: 1.0x + 0.1x/day, max 2.0x
-  const streakMultiplier = Math.min(1.0 + (0.1 * streakDays), 2.0);
+  const streakMultiplier = Math.min(1.0 + 0.1 * streakDays, 2.0);
 
   // Subtotal before multiplier
   const subTotal = baseFP + volumeBonus + prBonus;
@@ -172,7 +178,7 @@ function calculateCardioFP({ type, durationMinutes, streakDays = 0 }) {
   const completionBonus = durationMinutes >= config.min ? config.bonus : 0;
 
   // Streak multiplier
-  const streakMultiplier = Math.min(1.0 + (0.1 * streakDays), 2.0);
+  const streakMultiplier = Math.min(1.0 + 0.1 * streakDays, 2.0);
 
   const subTotal = baseFP + completionBonus;
   const totalFP = Math.floor(subTotal * streakMultiplier);
@@ -224,8 +230,10 @@ function calculateTypedFPDistribution(totalFP, muscleGroups) {
   for (const muscle of muscleGroups) {
     const mapping = MUSCLE_TO_FP_TYPE[muscle.toLowerCase()];
     if (mapping) {
-      mapping.primary.forEach(t => typeWeights[t]++);
-      mapping.secondary.forEach(t => typeWeights[t] += 0.3); // Secondary = 30% weight
+      mapping.primary.forEach((t) => typeWeights[t]++);
+      mapping.secondary.forEach((t) => {
+        typeWeights[t] += 0.3; // Secondary = 30% weight
+      });
     }
   }
 
@@ -249,8 +257,7 @@ function calculateTypedFPDistribution(totalFP, muscleGroups) {
   // Distribute remainder
   const remainder = totalFP - distributed;
   if (remainder > 0) {
-    const highestType = Object.entries(typeWeights)
-      .sort((a, b) => b[1] - a[1])[0][0];
+    const highestType = Object.entries(typeWeights).sort((a, b) => b[1] - a[1])[0][0];
     typedFP[highestType] = (typedFP[highestType] || 0) + remainder;
   }
 
@@ -432,7 +439,8 @@ function calculateMood(hunger, recentFeed, recentWorkout, recentInteraction) {
   score = Math.max(0, Math.min(100, score));
 
   // Determine mood
-  let mood, spiritModifier;
+  let mood;
+  let spiritModifier;
   if (score >= 80) {
     mood = 'Ecstatic';
     spiritModifier = 1.2;
@@ -532,18 +540,30 @@ describe('FP Calculation: PR Bonuses', () => {
 
 describe('FP Calculation: Streak Multiplier', () => {
   test('no streak = 1.0x multiplier', () => {
-    expect(calculateWorkoutFP({ totalReps: 0, streakDays: 0 }).breakdown.streakMultiplier).toBe(1.0);
+    expect(calculateWorkoutFP({ totalReps: 0, streakDays: 0 }).breakdown.streakMultiplier).toBe(
+      1.0
+    );
   });
 
   test('streak multiplier: 1.0x + 0.1x per day', () => {
-    expect(calculateWorkoutFP({ totalReps: 0, streakDays: 1 }).breakdown.streakMultiplier).toBe(1.1);
-    expect(calculateWorkoutFP({ totalReps: 0, streakDays: 5 }).breakdown.streakMultiplier).toBe(1.5);
-    expect(calculateWorkoutFP({ totalReps: 0, streakDays: 10 }).breakdown.streakMultiplier).toBe(2.0);
+    expect(calculateWorkoutFP({ totalReps: 0, streakDays: 1 }).breakdown.streakMultiplier).toBe(
+      1.1
+    );
+    expect(calculateWorkoutFP({ totalReps: 0, streakDays: 5 }).breakdown.streakMultiplier).toBe(
+      1.5
+    );
+    expect(calculateWorkoutFP({ totalReps: 0, streakDays: 10 }).breakdown.streakMultiplier).toBe(
+      2.0
+    );
   });
 
   test('streak multiplier capped at 2.0x', () => {
-    expect(calculateWorkoutFP({ totalReps: 0, streakDays: 15 }).breakdown.streakMultiplier).toBe(2.0);
-    expect(calculateWorkoutFP({ totalReps: 0, streakDays: 100 }).breakdown.streakMultiplier).toBe(2.0);
+    expect(calculateWorkoutFP({ totalReps: 0, streakDays: 15 }).breakdown.streakMultiplier).toBe(
+      2.0
+    );
+    expect(calculateWorkoutFP({ totalReps: 0, streakDays: 100 }).breakdown.streakMultiplier).toBe(
+      2.0
+    );
   });
 });
 
@@ -849,7 +869,9 @@ describe('Mood: Calculation', () => {
     // Starting with 25 hunger: 50 - 20 + 20 + 25 = 75 → Happy
     // PRD says "restores to neutral" - we interpret this as at least neutral
     const result = calculateMood(25, true, true, false);
-    expect(result.mood === 'Neutral' || result.mood === 'Happy' || result.mood === 'Ecstatic').toBe(true);
+    expect(result.mood === 'Neutral' || result.mood === 'Happy' || result.mood === 'Ecstatic').toBe(
+      true
+    );
   });
 });
 
@@ -889,7 +911,7 @@ console.log('══════════════════════�
 
 if (failed > 0) {
   console.log('\nFailed tests:');
-  failures.forEach(f => {
+  failures.forEach((f) => {
     console.log(`  [${f.suite}] ${f.name}: ${f.error}`);
   });
   process.exit(1);

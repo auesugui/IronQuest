@@ -2,8 +2,8 @@
 // IronQuest FP Calculator Unit Tests
 // =============================================================================
 
-import { calculateSetFP, estimateSetFP, checkForPR, formatFPBreakdown } from '../fp-calculator';
-import type { FPBreakdown, SetFPParams } from '../fp-calculator';
+import { calculateSetFP, checkForPR, estimateSetFP, formatFPBreakdown } from '../fp-calculator';
+import type { FPBreakdown } from '../fp-calculator';
 
 // =============================================================================
 // Test Fixtures

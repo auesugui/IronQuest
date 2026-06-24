@@ -2,10 +2,10 @@
 // IronQuest Profile Tab
 // =============================================================================
 
-import { View, Text, StyleSheet, ScrollView, Pressable } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
-import { colors, spacing, textStyles } from '@/theme';
 import { usePlayerStore, useSettingsStore } from '@/stores';
+import { colors, spacing, textStyles } from '@/theme';
 
 export default function ProfileScreen() {
   const profile = usePlayerStore((state) => state.profile);

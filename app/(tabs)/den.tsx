@@ -2,13 +2,13 @@
 // IronQuest The Den Tab - Pet Care & Stat Upgrades
 // =============================================================================
 
-import { View, Text, StyleSheet, ScrollView, Pressable } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
-import { colors, spacing, textStyles, radius } from '@/theme';
-import { usePetStore, usePlayerStore, selectTotalFP } from '@/stores';
-import { haptics } from '@/utils/haptics';
-import type { StatType } from '@/types';
 import { PetAvatar } from '@/components/pet';
+import { selectTotalFP, usePetStore, usePlayerStore } from '@/stores';
+import { colors, radius, spacing, textStyles } from '@/theme';
+import type { StatType } from '@/types';
+import { haptics } from '@/utils/haptics';
 
 // Scaling stat costs:
 // - Physical stats: 5 FP (1-10), 8 FP (11-25), 12 FP (26-50)
@@ -172,7 +172,9 @@ export default function DenScreen() {
             accessibilityRole="button"
             accessibilityLabel={`Feed pet for ${FEED_COST} FP`}
           >
-            <Text style={styles.feedButtonText}>Feed {hunger < 100 ? `(${FEED_COST} FP)` : '(Full)'}</Text>
+            <Text style={styles.feedButtonText}>
+              Feed {hunger < 100 ? `(${FEED_COST} FP)` : '(Full)'}
+            </Text>
           </Pressable>
         </View>
         <View style={styles.careRow}>
@@ -302,21 +304,17 @@ function StatRow({
       </View>
       <Text style={styles.statValue}>{value}</Text>
       <Pressable
-        style={[
-          styles.upgradeButton,
-          (!canAfford || isMaxed) && styles.buttonDisabled,
-        ]}
+        style={[styles.upgradeButton, (!canAfford || isMaxed) && styles.buttonDisabled]}
         onPress={() => onUpgrade(stat)}
         disabled={!canAfford || isMaxed}
         accessibilityRole="button"
         accessibilityLabel={`Upgrade ${label} for ${cost} FP`}
       >
-        <Text style={styles.upgradeButtonText}>
-          {isMaxed ? 'MAX' : `+1`}
-        </Text>
+        <Text style={styles.upgradeButtonText}>{isMaxed ? 'MAX' : '+1'}</Text>
         {!isMaxed && (
           <Text style={styles.upgradeCost}>
-            {cost}{isSpirit ? ' 🔮' : ''}
+            {cost}
+            {isSpirit ? ' 🔮' : ''}
           </Text>
         )}
       </Pressable>

@@ -289,7 +289,11 @@ export default function WorkoutSessionScreen() {
           {/* Sets */}
           <View style={styles.setsContainer}>
             {currentExercise.sets.map((set, index) => (
-              <View key={index} style={styles.setRow}>
+              <View
+                // biome-ignore lint/suspicious/noArrayIndexKey: set positions are stable and never reordered
+                key={index}
+                style={styles.setRow}
+              >
                 <Text style={styles.setNumber}>Set {index + 1}</Text>
 
                 {set.logged ? (

@@ -2,8 +2,8 @@
 // IronQuest Haptics Utility
 // =============================================================================
 
-import * as Haptics from 'expo-haptics';
 import { useSettingsStore } from '@/stores';
+import * as Haptics from 'expo-haptics';
 
 // Haptic feedback types
 export type HapticStyle =

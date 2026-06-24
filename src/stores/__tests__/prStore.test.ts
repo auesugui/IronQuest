@@ -3,8 +3,8 @@
 // =============================================================================
 // Tests for personal record tracking and detection
 
+import { appStorage } from '@/utils/storage';
 import { usePRStore } from '../prStore';
-import { appStorage, STORAGE_KEYS } from '@/utils/storage';
 
 // Mock dependencies
 jest.mock('@/utils/storage', () => ({
@@ -102,7 +102,7 @@ describe('PR Store', () => {
 
       const records = usePRStore.getState().records;
       expect(records['bench-press']?.maxWeight).toBe(135);
-      expect(records['squat']?.maxWeight).toBe(225);
+      expect(records.squat?.maxWeight).toBe(225);
     });
 
     it('should persist PR state after recording', () => {

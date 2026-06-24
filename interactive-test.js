@@ -64,7 +64,10 @@ async function main() {
     });
     await page.waitForTimeout(2000);
 
-    await page.screenshot({ path: path.join(SCREENSHOTS_DIR, 'interactive-02-den.png'), fullPage: true });
+    await page.screenshot({
+      path: path.join(SCREENSHOTS_DIR, 'interactive-02-den.png'),
+      fullPage: true,
+    });
     console.log('   ✅ Den screen loaded\n');
 
     // =========================================================================
@@ -103,7 +106,11 @@ async function main() {
     await page.screenshot({ path: path.join(SCREENSHOTS_DIR, 'interactive-03-spirit-stat.png') });
 
     // Check for crystal ball emoji or Spirit-specific text
-    const spiritSection = await page.locator('text=/🔮|Spirit.*10/').first().isVisible().catch(() => false);
+    const spiritSection = await page
+      .locator('text=/🔮|Spirit.*10/')
+      .first()
+      .isVisible()
+      .catch(() => false);
     console.log(`   ${spiritSection ? '✅' : '⚠️'} Spirit indicator present\n`);
 
     // =========================================================================
@@ -150,7 +157,6 @@ async function main() {
     // Keep browser open for inspection
     console.log('👀 Browser will stay open for 10 seconds for manual inspection...');
     await page.waitForTimeout(10000);
-
   } catch (error) {
     console.error('❌ Error:', error.message);
   } finally {

@@ -2,9 +2,9 @@
 // IronQuest Settings Store - App Preferences
 // =============================================================================
 
+import type { NotificationSettings, Settings } from '@/types';
+import { STORAGE_KEYS, appStorage } from '@/utils/storage';
 import { create } from 'zustand';
-import { appStorage, STORAGE_KEYS } from '@/utils/storage';
-import type { Settings, NotificationSettings } from '@/types';
 
 // -----------------------------------------------------------------------------
 // Types
@@ -46,10 +46,12 @@ export const useSettingsStore = create<SettingsStore>((set, get) => ({
     set({ [key]: value });
 
     // Persist to storage (async, fire-and-forget)
-    appStorage.setJSON(STORAGE_KEYS.SETTINGS.FULL_STATE, {
-      ...get(),
-      [key]: value,
-    }).catch(console.warn);
+    appStorage
+      .setJSON(STORAGE_KEYS.SETTINGS.FULL_STATE, {
+        ...get(),
+        [key]: value,
+      })
+      .catch(console.warn);
   },
 
   updateNotifications: (notifications) => {

@@ -1,13 +1,8 @@
-// =============================================================================
-// IronQuest Template Card Component
-// =============================================================================
-
-import React from 'react';
-import { View, Text, StyleSheet, Pressable } from 'react-native';
-import { colors, spacing, textStyles, radius } from '@/theme';
 import { RadarChart } from '@/components/progress/RadarChart';
-import { haptics } from '@/utils/haptics';
 import type { WorkoutTemplateDefinition } from '@/data';
+import { colors, radius, spacing, textStyles } from '@/theme';
+import { haptics } from '@/utils/haptics';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 interface TemplateCardProps {
   template: WorkoutTemplateDefinition;
@@ -38,10 +33,7 @@ export function TemplateCard({ template, onPress }: TemplateCardProps) {
             ]}
           >
             <Text
-              style={[
-                styles.difficultyText,
-                { color: DIFFICULTY_COLORS[template.difficulty] },
-              ]}
+              style={[styles.difficultyText, { color: DIFFICULTY_COLORS[template.difficulty] }]}
             >
               {template.difficulty.charAt(0).toUpperCase() + template.difficulty.slice(1)}
             </Text>
@@ -69,11 +61,7 @@ export function TemplateCard({ template, onPress }: TemplateCardProps) {
         </View>
 
         <View style={styles.radarContainer}>
-          <RadarChart
-            values={template.totalFpDistribution}
-            size={140}
-            showLabels={true}
-          />
+          <RadarChart values={template.totalFpDistribution} size={140} showLabels={true} />
         </View>
       </View>
 

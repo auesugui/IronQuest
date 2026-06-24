@@ -15,7 +15,10 @@ async function main() {
   await page.waitForTimeout(3000);
 
   // Take screenshot
-  await page.screenshot({ path: path.join(__dirname, 'screenshots', 'debug-current.png'), fullPage: true });
+  await page.screenshot({
+    path: path.join(__dirname, 'screenshots', 'debug-current.png'),
+    fullPage: true,
+  });
   console.log('Screenshot saved to screenshots/debug-current.png');
 
   // Get all visible text
@@ -26,8 +29,8 @@ async function main() {
   // Get accessibility tree
   const snapshot = await page.accessibility.snapshot();
   console.log('\n=== Accessibility tree (first level) ===\n');
-  if (snapshot && snapshot.children) {
-    snapshot.children.slice(0, 20).forEach(child => {
+  if (snapshot?.children) {
+    snapshot.children.slice(0, 20).forEach((child) => {
       console.log(`- ${child.role}: "${child.name || ''}"`);
     });
   }

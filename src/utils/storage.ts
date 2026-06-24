@@ -107,7 +107,7 @@ export const appStorage = {
 
   getNumber: async (key: string): Promise<number | undefined> => {
     const value = await AsyncStorage.getItem(key);
-    return value ? parseFloat(value) : undefined;
+    return value ? Number.parseFloat(value) : undefined;
   },
 
   getBoolean: async (key: string): Promise<boolean | undefined> => {
@@ -170,4 +170,3 @@ export const migrateStorage = async (): Promise<void> => {
     await appStorage.setNumber(STORAGE_KEYS.SCHEMA_VERSION, SCHEMA_VERSION);
   }
 };
-

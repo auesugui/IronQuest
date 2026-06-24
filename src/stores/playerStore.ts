@@ -2,9 +2,9 @@
 // IronQuest Player Store - Profile, FP, Streak
 // =============================================================================
 
+import type { FPBalances, PlayerProfile, StreakData } from '@/types';
+import { STORAGE_KEYS, appStorage } from '@/utils/storage';
 import { create } from 'zustand';
-import { appStorage, STORAGE_KEYS } from '@/utils/storage';
-import type { FPBalances, StreakData, PlayerProfile, Player } from '@/types';
 
 // -----------------------------------------------------------------------------
 // Types

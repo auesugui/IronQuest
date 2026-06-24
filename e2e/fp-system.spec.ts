@@ -5,7 +5,7 @@
 // Prerequisites: Expo web server running (npm run web)
 // =============================================================================
 
-import { test, expect, Page } from '@playwright/test';
+import { type Page, expect, test } from '@playwright/test';
 
 // Mobile viewport constants
 const MOBILE_VIEWPORT = { width: 390, height: 844 };

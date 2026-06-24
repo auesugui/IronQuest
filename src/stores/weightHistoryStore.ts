@@ -2,9 +2,9 @@
 // IronQuest Weight History Store - Remembers Last Used Weight Per Exercise
 // =============================================================================
 
-import { create } from 'zustand';
-import { appStorage, STORAGE_KEYS } from '@/utils/storage';
 import type { ExerciseWeightHistory, WeightHistoryEntry } from '@/types';
+import { STORAGE_KEYS, appStorage } from '@/utils/storage';
+import { create } from 'zustand';
 
 // -----------------------------------------------------------------------------
 // Types

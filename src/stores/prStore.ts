@@ -6,8 +6,8 @@
 // - Weight PR: Heaviest weight lifted for an exercise
 // - Rep PR: Most reps at a specific weight for an exercise
 
+import { STORAGE_KEYS, appStorage } from '@/utils/storage';
 import { create } from 'zustand';
-import { appStorage, STORAGE_KEYS } from '@/utils/storage';
 
 // -----------------------------------------------------------------------------
 // Types
@@ -37,7 +37,11 @@ export interface PRState {
 
 export interface PRActions {
   // Check if a set is a PR, returns PR type or null
-  checkPR: (exerciseId: string, weight: number, reps: number) => {
+  checkPR: (
+    exerciseId: string,
+    weight: number,
+    reps: number
+  ) => {
     isWeightPR: boolean;
     isRepPR: boolean;
     previousMaxWeight: number | null;
@@ -45,7 +49,11 @@ export interface PRActions {
   };
 
   // Record a new PR (called after logging)
-  recordPR: (exerciseId: string, weight: number, reps: number) => {
+  recordPR: (
+    exerciseId: string,
+    weight: number,
+    reps: number
+  ) => {
     isWeightPR: boolean;
     isRepPR: boolean;
   };

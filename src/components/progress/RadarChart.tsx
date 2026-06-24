@@ -1,12 +1,6 @@
-// =============================================================================
-// IronQuest Radar Chart Component
-// =============================================================================
-// 6-axis radar chart for FP distribution: Power, Guard, Speed, Vigor, Focus, Spirit
-
-import React from 'react';
-import { View, StyleSheet } from 'react-native';
-import Svg, { Polygon, Line, Text, G, Defs, RadialGradient, Stop } from 'react-native-svg';
 import { colors } from '@/theme';
+import { StyleSheet, View } from 'react-native';
+import Svg, { Polygon, Line, Text, G, Defs, RadialGradient, Stop } from 'react-native-svg';
 
 interface RadarChartProps {
   values: Record<string, number>; // 0-100 for each stat
@@ -30,7 +24,7 @@ export function RadarChart({ values, size = 200, showLabels = true }: RadarChart
   const labelPadding = showLabels ? 20 : 0;
   const svgSize = size + labelPadding * 2;
   const center = svgSize / 2;
-  const radius = (size / 2) - 30; // Internal padding for grid
+  const radius = size / 2 - 30; // Internal padding for grid
   const levels = 5; // Number of grid circles
 
   // Calculate point on circle for given angle and distance
@@ -66,6 +60,7 @@ export function RadarChart({ values, size = 200, showLabels = true }: RadarChart
 
           return (
             <Polygon
+              // biome-ignore lint/suspicious/noArrayIndexKey: grid rings are positional, no natural id
               key={`grid-${levelIndex}`}
               points={gridPoints}
               fill="none"
@@ -81,6 +76,7 @@ export function RadarChart({ values, size = 200, showLabels = true }: RadarChart
           const endPoint = getPoint(stat.angle, radius);
           return (
             <Line
+              // biome-ignore lint/suspicious/noArrayIndexKey: axis lines are positional, no natural id
               key={`axis-${index}`}
               x1={center}
               y1={center}
@@ -117,7 +113,10 @@ export function RadarChart({ values, size = 200, showLabels = true }: RadarChart
             const value = values[stat.key] ?? 0;
 
             return (
-              <G key={`label-${index}`}>
+              <G
+                // biome-ignore lint/suspicious/noArrayIndexKey: stat labels are positional, no natural id
+                key={`label-${index}`}
+              >
                 <Text
                   x={point.x}
                   y={point.y - 6}

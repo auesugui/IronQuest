@@ -184,7 +184,7 @@ const path = require('path');
   fs.writeFileSync(tempFile, testScript);
 
   try {
-    execSync(`npx playwright test --browser=chromium --headed=false`, {
+    execSync('npx playwright test --browser=chromium --headed=false', {
       stdio: 'inherit',
       cwd: process.cwd(),
       env: { ...process.env, PLAYWRIGHT_BROWSERS_PATH: '0' },
