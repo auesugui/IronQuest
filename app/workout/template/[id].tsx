@@ -3,25 +3,28 @@
 // =============================================================================
 
 import { router, useLocalSearchParams } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { RadarChart } from '@/components/progress/RadarChart';
 import { type WorkoutTemplateDefinition, getExerciseById, getTemplateById } from '@/data';
+import { useTemplateStore } from '@/stores';
 import { colors, radius, spacing, textStyles } from '@/theme';
 import { haptics } from '@/utils/haptics';
 
 export default function TemplateDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const [template, setTemplate] = useState<WorkoutTemplateDefinition | null>(null);
   const [selectedDayIndex, setSelectedDayIndex] = useState(0);
 
-  useEffect(() => {
-    if (id) {
-      const found = getTemplateById(id);
-      setTemplate(found ?? null);
-    }
-  }, [id]);
+  const personalTemplates = useTemplateStore((state) => state.templates);
+  const duplicateTemplate = useTemplateStore((state) => state.duplicateTemplate);
+
+  // Reactive resolution: built-ins first, then personal copies. Re-resolves
+  // automatically once the store hydrates from AsyncStorage.
+  const template = useMemo<WorkoutTemplateDefinition | null>(() => {
+    if (!id) return null;
+    return getTemplateById(id) ?? personalTemplates.find((t) => t.id === id) ?? null;
+  }, [id, personalTemplates]);
 
   if (!template) {
     return (
@@ -51,10 +54,32 @@ export default function TemplateDetailScreen() {
     setSelectedDayIndex(index);
   };
 
+  const handleDuplicate = () => {
+    if (!template) return;
+    const newId = duplicateTemplate(template.id);
+    if (newId) {
+      haptics.success();
+      router.push(`/workout/template-edit/${newId}`);
+    }
+  };
+
+  const handleEdit = () => {
+    if (!template) return;
+    haptics.tap();
+    router.push(`/workout/template-edit/${template.id}`);
+  };
+
+  const isCustom = template.isCustom === true;
+
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       {/* Header */}
       <View style={styles.header}>
+        {isCustom && (
+          <View style={styles.customBadge}>
+            <Text style={styles.customBadgeText}>Custom Template</Text>
+          </View>
+        )}
         <Text style={styles.templateName}>{template.name}</Text>
         <Text style={styles.templateDescription}>{template.description}</Text>
 
@@ -62,6 +87,23 @@ export default function TemplateDetailScreen() {
           <MetaChip label={`${template.daysPerWeek} days/week`} />
           <MetaChip label={`${template.estimatedDuration} min`} />
           <MetaChip label={template.difficulty} />
+        </View>
+
+        {/* Customize actions */}
+        <View style={styles.customActions}>
+          {isCustom ? (
+            <Pressable style={[styles.actionButton, styles.actionPrimary]} onPress={handleEdit}>
+              <Text style={styles.actionPrimaryText}>✎ Edit Template</Text>
+            </Pressable>
+          ) : null}
+          <Pressable
+            style={[styles.actionButton, isCustom ? styles.actionSecondary : styles.actionPrimary]}
+            onPress={handleDuplicate}
+          >
+            <Text style={isCustom ? styles.actionSecondaryText : styles.actionPrimaryText}>
+              {isCustom ? 'Duplicate' : '⧉ Copy & Customize'}
+            </Text>
+          </Pressable>
         </View>
       </View>
 
@@ -203,6 +245,45 @@ const styles = StyleSheet.create({
   },
   metaChipText: {
     ...textStyles.caption,
+    color: colors.text.secondary,
+  },
+  customBadge: {
+    alignSelf: 'flex-start',
+    backgroundColor: colors.types.flux + '24',
+    paddingHorizontal: spacing[2],
+    paddingVertical: spacing[1],
+    borderRadius: radius.full,
+    marginBottom: spacing[2],
+  },
+  customBadgeText: {
+    ...textStyles.caption,
+    color: colors.types.flux,
+    fontWeight: '700',
+  },
+  customActions: {
+    flexDirection: 'row',
+    gap: spacing[2],
+    marginTop: spacing[4],
+  },
+  actionButton: {
+    flex: 1,
+    paddingVertical: spacing[3],
+    borderRadius: radius.md,
+    alignItems: 'center',
+  },
+  actionPrimary: {
+    backgroundColor: colors.types.flux,
+  },
+  actionPrimaryText: {
+    ...textStyles.button,
+    color: colors.background.primary,
+    fontWeight: '600',
+  },
+  actionSecondary: {
+    backgroundColor: colors.background.tertiary,
+  },
+  actionSecondaryText: {
+    ...textStyles.button,
     color: colors.text.secondary,
   },
   section: {

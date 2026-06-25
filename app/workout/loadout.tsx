@@ -5,7 +5,7 @@
 // preview the exercise list, then begin the session.
 
 import { router, useLocalSearchParams } from 'expo-router';
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { FP_CONFIG } from '@/config/fp-values';
@@ -15,7 +15,7 @@ import {
   getExerciseById,
   getTemplateById,
 } from '@/data';
-import { useWorkoutStore } from '@/stores';
+import { useTemplateStore, useWorkoutStore } from '@/stores';
 import { colors, radius, spacing, textStyles } from '@/theme';
 import type { Exercise, SessionIntent } from '@/types';
 import { haptics } from '@/utils/haptics';
@@ -90,16 +90,19 @@ export default function WorkoutLoadoutScreen() {
     dayIndex: string;
   }>();
 
-  const [template, setTemplate] = useState<WorkoutTemplateDefinition | null>(null);
+  const personalTemplates = useTemplateStore((state) => state.templates);
   const [intent, setIntent] = useState<SessionIntent>('normal');
 
   const startSession = useWorkoutStore((state) => state.startSession);
 
-  useEffect(() => {
-    if (templateId) {
-      setTemplate(getTemplateById(templateId) ?? null);
-    }
-  }, [templateId]);
+  // Resolve built-ins first, then personal copies (so custom templates can
+  // start a workout). Reactive — resolves once the template store hydrates.
+  const template = useMemo<WorkoutTemplateDefinition | null>(() => {
+    if (!templateId) return null;
+    return (
+      getTemplateById(templateId) ?? personalTemplates.find((t) => t.id === templateId) ?? null
+    );
+  }, [templateId, personalTemplates]);
 
   const day = useMemo(() => {
     if (!template) return null;

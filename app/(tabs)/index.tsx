@@ -7,13 +7,14 @@ import { ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { TemplateCard } from '@/components/workout/TemplateCard';
 import { WORKOUT_TEMPLATES } from '@/data';
-import { selectTotalFP, usePlayerStore } from '@/stores';
+import { selectTotalFP, usePlayerStore, useTemplateStore } from '@/stores';
 import { colors, radius, spacing, textStyles } from '@/theme';
 
 export default function QuestBoardScreen() {
   const totalFP = usePlayerStore(selectTotalFP);
   const streak = usePlayerStore((state) => state.streak.current);
   const totalWorkouts = usePlayerStore((state) => state.totalWorkouts);
+  const personalTemplates = useTemplateStore((state) => state.templates);
 
   const handleTemplatePress = (templateId: string) => {
     router.push(`/workout/template/${templateId}`);
@@ -46,6 +47,23 @@ export default function QuestBoardScreen() {
       </View>
 
       {/* Templates Section */}
+      {personalTemplates.length > 0 && (
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>My Custom Templates</Text>
+          <Text style={styles.sectionSubtitle}>
+            Your personal copies. Tap to view, edit, or start a session.
+          </Text>
+
+          {personalTemplates.map((template) => (
+            <TemplateCard
+              key={template.id}
+              template={template}
+              onPress={() => handleTemplatePress(template.id)}
+            />
+          ))}
+        </View>
+      )}
+
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Workout Templates</Text>
         <Text style={styles.sectionSubtitle}>
