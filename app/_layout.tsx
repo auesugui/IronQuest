@@ -14,6 +14,7 @@ import {
   usePetStore,
   usePlayerStore,
   useSettingsStore,
+  useTemplateStore,
   useWeightHistoryStore,
   useWorkoutStore,
 } from '@/stores';
@@ -28,6 +29,7 @@ export default function RootLayout() {
   const hydrateWeightHistory = useWeightHistoryStore((state) => state.hydrate);
   const hydratePR = usePRStore((state) => state.hydrate);
   const hydrateBaseline = useBaselineStore((state) => state.hydrate);
+  const hydrateTemplates = useTemplateStore((state) => state.hydrate);
   const theme = useSettingsStore((state) => state.theme);
 
   // Hydrate all stores on mount
@@ -43,6 +45,7 @@ export default function RootLayout() {
           hydrateWeightHistory(),
           hydratePR(),
           hydrateBaseline(),
+          hydrateTemplates(),
         ]);
       } catch (error) {
         console.warn('Storage initialization error:', error);
@@ -58,6 +61,7 @@ export default function RootLayout() {
     hydrateWeightHistory,
     hydratePR,
     hydrateBaseline,
+    hydrateTemplates,
   ]);
 
   // Document title for web (browser tab, home-screen icon label, SEO).

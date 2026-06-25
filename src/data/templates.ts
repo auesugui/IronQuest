@@ -36,6 +36,14 @@ export interface WorkoutTemplateDefinition {
   estimatedDuration: number; // minutes per session
   days: TemplateDay[];
   totalFpDistribution: Record<StatType, number>; // Aggregated FP distribution
+  /**
+   * Personal-copy metadata. Built-in templates leave these unset, which keeps
+   * them read-only (see issue #5). Personal copies set `isCustom: true`.
+   */
+  isCustom?: boolean;
+  sourceTemplateId?: string; // built-in / copy a personal template was duplicated from
+  createdAt?: number; // ms epoch — personal copies only
+  updatedAt?: number; // ms epoch — personal copies only
 }
 
 // -----------------------------------------------------------------------------
@@ -44,7 +52,12 @@ export interface WorkoutTemplateDefinition {
 
 import { EXERCISE_DATABASE, MUSCLE_TO_FP } from './exercises';
 
-function calculateDayFPDistribution(exercises: TemplateExercise[]): Record<StatType, number> {
+// Exported so stores/UI can recompute distributions after editing a personal
+// copy (issue #5). Keeping a single implementation prevents shadow calculators
+// — see the engineer prompt's "Shadow calculator guard".
+export function calculateDayFPDistribution(
+  exercises: TemplateExercise[]
+): Record<StatType, number> {
   const fpCounts: Record<StatType, number> = {
     power: 0,
     guard: 0,
@@ -84,7 +97,7 @@ function calculateDayFPDistribution(exercises: TemplateExercise[]): Record<StatT
   return normalized;
 }
 
-function calculateTotalFPDistribution(days: TemplateDay[]): Record<StatType, number> {
+export function calculateTotalFPDistribution(days: TemplateDay[]): Record<StatType, number> {
   const totals: Record<StatType, number> = {
     power: 0,
     guard: 0,

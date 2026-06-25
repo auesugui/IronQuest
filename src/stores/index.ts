@@ -34,3 +34,4 @@ export {
 } from './weightHistoryStore';
 export { usePRStore } from './prStore';
 export { useBaselineStore } from './baselineStore';
+export { useTemplateStore } from './templateStore';

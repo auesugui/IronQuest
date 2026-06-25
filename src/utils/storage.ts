@@ -87,6 +87,10 @@ export const STORAGE_KEYS = {
   BASELINE: {
     FULL_STATE: 'baseline.full_state',
   },
+  // Personal (custom) workout templates — duplicated/edited copies of built-ins
+  PERSONAL_TEMPLATES: {
+    FULL_STATE: 'personal_templates.full_state',
+  },
   // Misc
   SCHEMA_VERSION: 'schema_version',
 } as const;

@@ -25,7 +25,14 @@ export function TemplateCard({ template, onPress }: TemplateCardProps) {
     <Pressable style={styles.card} onPress={handlePress}>
       <View style={styles.header}>
         <View style={styles.titleRow}>
-          <Text style={styles.name}>{template.name}</Text>
+          <View style={styles.nameWrap}>
+            <Text style={styles.name}>{template.name}</Text>
+            {template.isCustom && (
+              <View style={styles.customBadge}>
+                <Text style={styles.customBadgeText}>Custom</Text>
+              </View>
+            )}
+          </View>
           <View
             style={[
               styles.difficultyBadge,
@@ -91,6 +98,25 @@ const styles = StyleSheet.create({
   name: {
     ...textStyles.h3,
     color: colors.text.primary,
+  },
+  nameWrap: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing[2],
+    flex: 1,
+    flexShrink: 1,
+  },
+  customBadge: {
+    backgroundColor: colors.types.flux + '24',
+    paddingHorizontal: spacing[2],
+    paddingVertical: 2,
+    borderRadius: radius.full,
+  },
+  customBadgeText: {
+    ...textStyles.caption,
+    color: colors.types.flux,
+    fontWeight: '700',
+    fontSize: 10,
   },
   difficultyBadge: {
     paddingHorizontal: spacing[2],
