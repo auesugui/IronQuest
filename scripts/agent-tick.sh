@@ -34,6 +34,8 @@ ISSUE="$1"
 BRANCH="agent/issue-$ISSUE"
 WORKTREE="$WORKTREE_BASE/issue-$ISSUE"
 LOG_FILE="$RUNS_DIR/issue-$ISSUE.log"
+JSON_FILE="$RUNS_DIR/issue-$ISSUE.json"
+RAW_STREAM="$RUNS_DIR/issue-$ISSUE.raw"
 PROMPT_FILE="$RUNS_DIR/issue-$ISSUE.prompt"
 # Absolute path — the agent runs inside the worktree, so a relative path would
 # land in the wrong directory. Resolve against the repo root up front.
@@ -155,15 +157,52 @@ echo "=== Invoking ironquest-engineer ==="
 echo "  Log: $LOG_FILE"
 echo ""
 
+# --output-format=json emits a single result object with cost + usage data.
+# Capture to a file so we can surface real spend (vs. just the cap) in the PR.
 (
   cd "$WORKTREE"
   claude -p "$(cat "$OLDPWD/$PROMPT_FILE")" \
     --agent ironquest-engineer \
     --permission-mode bypassPermissions \
     --max-budget-usd "$MAX_BUDGET_USD" \
-    2>&1 | tee "$OLDPWD/$LOG_FILE"
+    --output-format json \
+    >"$OLDPWD/$JSON_FILE" \
+    2>"$OLDPWD/$RAW_STREAM"
 )
+CLAUDE_EXIT=$?
 
+# Build a human-readable log from the JSON. If JSON parsing fails (claude
+# crashed, ran over budget, etc.), fall back to the raw stream so the log
+# still has something for debugging.
+TOTAL_COST="unknown"
+DURATION_DISPLAY="unknown"
+if [[ -s "$JSON_FILE" ]] && jq empty "$JSON_FILE" 2>/dev/null; then
+  RAW_COST=$(jq -r '.total_cost_usd // "unknown"' "$JSON_FILE")
+  if [[ "$RAW_COST" != "unknown" ]]; then
+    TOTAL_COST=$(awk -v c="$RAW_COST" 'BEGIN {printf "%.2f", c}')
+  fi
+  DURATION_MS=$(jq -r '.duration_ms // 0' "$JSON_FILE")
+  NUM_TURNS=$(jq -r '.num_turns // 0' "$JSON_FILE")
+  IS_ERROR=$(jq -r '.is_error // false' "$JSON_FILE")
+  DURATION_DISPLAY=$(awk -v ms="$DURATION_MS" 'BEGIN {printf "%.1fs", ms/1000}')
+  {
+    jq -r '.result // "(no result field in JSON)"' "$JSON_FILE"
+    echo ""
+    echo "=== Metrics ==="
+    printf 'Cost: $%s / $%s cap\n' "$TOTAL_COST" "$MAX_BUDGET_USD"
+    printf 'Duration: %s (%s turns)\n' "$DURATION_DISPLAY" "$NUM_TURNS"
+    [[ "$IS_ERROR" == "true" ]] && echo "Status: ERROR (claude reported failure)"
+  } > "$LOG_FILE"
+else
+  {
+    echo "ERROR: claude -p did not produce valid JSON output (exit $CLAUDE_EXIT)"
+    echo ""
+    echo "=== Raw stream ==="
+    cat "$RAW_STREAM" 2>/dev/null
+  } > "$LOG_FILE"
+fi
+
+cat "$LOG_FILE"
 echo ""
 
 # --- Verify commit was made -------------------------------------------------
@@ -238,6 +277,12 @@ if [[ -f "$SUMMARY_FILE" && -s "$SUMMARY_FILE" ]]; then
   AGENT_SUMMARY=$(cat "$SUMMARY_FILE")
   PR_BODY="## Verification: $VERIFICATION_BADGE
 
+## Cost
+
+- **Agent:** \`$TOTAL_COST\` / \`$MAX_BUDGET_USD\` budget cap
+- **Duration:** $DURATION_DISPLAY
+- **Orchestrator:** _pending — reviewer fills in post-merge via \`/cost\`_
+
 ---
 
 $AGENT_SUMMARY
@@ -256,6 +301,12 @@ Resolves #$ISSUE
 else
   echo "WARNING: no summary file at $SUMMARY_FILE, using boilerplate PR body"
   PR_BODY="## Verification: $VERIFICATION_BADGE
+
+## Cost
+
+- **Agent:** \`$TOTAL_COST\` / \`$MAX_BUDGET_USD\` budget cap
+- **Duration:** $DURATION_DISPLAY
+- **Orchestrator:** _pending — reviewer fills in post-merge via \`/cost\`_
 
 ---
 
