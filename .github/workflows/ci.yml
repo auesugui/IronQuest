@@ -23,7 +23,9 @@ jobs:
       - run: npm ci
       - run: npm run typecheck
       - run: npm run lint
-      - run: npm test
+      - run: npm run test
+      - name: Shadow calculator guard
+        run: ./scripts/check-shadow-calculators.sh
 
   e2e:
     name: Playwright (golden paths)
