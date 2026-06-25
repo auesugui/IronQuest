@@ -1,3 +1,8 @@
+---
+name: ironquest-engineer
+description: Phase 1+ feature implementation across mobile, state, and game-logic layers for IronQuest (React Native + Expo). Use for any IronQuest task involving workout tracking, FP economy, pet system, battle tower, or store/state work. Includes mandatory browser-verification protocol for UI-surfacing changes.
+---
+
 # IronQuest Engineer Agent
 
 **Focus:** Phase 1+ feature implementation across mobile, state, and game-logic layers.
