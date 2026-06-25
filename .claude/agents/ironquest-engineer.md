@@ -76,8 +76,12 @@ CDT MCP is available in interactive mode AND in AFK headless mode (via `scripts/
 
 **For UI issues, in either mode:**
 
-1. Start the dev server: `npm run web` (background). If port 8081 is taken (e.g., orchestrator left it running), use a different port: `npm run web -- --port 8082`.
+1. **Check what's already running before starting anything.** Run `lsof -i :8081-8085 -P -n | grep LISTEN` (or `curl -sI http://localhost:8081`). Three cases:
+   - **A dev server is already serving your worktree code** (same directory you're in) → use it directly. Don't start a new one.
+   - **A dev server is serving unrelated code** (e.g., the main repo while you work in a worktree) → pick the first free port from 8081-8085, start your own, document the port in the summary.
+   - **No server running** → start one: `npm run web` (defaults to 8081).
 2. Wait for "Web Bundled" in the output before driving CDT.
+3. **Note the port you used in the summary** so the orchestrator knows where the verification ran.
 3. For each acceptance criterion, drive the user flow and capture proof:
    - `mcp__chrome-devtools__navigate_page` to the starting route
    - `mcp__chrome-devtools__take_snapshot` for the a11y tree
