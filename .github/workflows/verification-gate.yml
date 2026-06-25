@@ -1,0 +1,65 @@
+name: Verification gate
+
+# Makes the verification-* labels load-bearing for agent-generated PRs.
+# A PR with the `agent-generated` label must also carry either
+# `verification-browser-checked` or `verification-test-only`. Missing or
+# `verification-unknown` fails this check, blocking merge (once configured
+# as a required status check via branch protection).
+#
+# Manual PRs (no `agent-generated` label) skip the gate entirely — this is
+# scoped to AFK agent-tick output only.
+
+on:
+  pull_request:
+    branches: [main, feature/phase1-core-implementation]
+    types: [opened, reopened, synchronize, labeled, unlabeled, ready_for_review]
+
+permissions:
+  pull-requests: read
+  contents: read
+
+jobs:
+  check-verification-label:
+    name: Verification label present
+    runs-on: ubuntu-latest
+    steps:
+      - name: Read PR labels and enforce verification gate
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_URL: ${{ github.event.pull_request.html_url }}
+        run: |
+          set -euo pipefail
+
+          LABELS=$(gh pr view "$PR_URL" --json labels --jq '.labels[].name')
+
+          echo "PR labels:"
+          echo "$LABELS"
+          echo ""
+
+          # Skip the gate entirely for non-agent PRs.
+          if ! echo "$LABELS" | grep -qx "agent-generated"; then
+            echo "OK: not an agent-generated PR — gate skipped"
+            exit 0
+          fi
+
+          # Agent PRs must carry one of the valid verification labels.
+          for label in verification-browser-checked verification-test-only; do
+            if echo "$LABELS" | grep -qx "$label"; then
+              echo "OK: agent-generated PR carries '$label'"
+              exit 0
+            fi
+          done
+
+          # Block on unknown or missing.
+          if echo "$LABELS" | grep -qx "verification-unknown"; then
+            echo "ERROR: agent-generated PR carries 'verification-unknown'" >&2
+            echo "" >&2
+            echo "The agent did not emit a parseable verification status block." >&2
+            echo "Re-run the tick, or manually CDT-verify before merging." >&2
+          else
+            echo "ERROR: agent-generated PR has no verification-* label" >&2
+            echo "" >&2
+            echo "Expected one of: verification-browser-checked, verification-test-only" >&2
+            echo "(If this is a manual PR, remove the agent-generated label.)" >&2
+          fi
+          exit 1
