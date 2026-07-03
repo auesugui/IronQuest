@@ -2,8 +2,8 @@
 // IronQuest Template Detail Screen
 // =============================================================================
 
-import { router, useLocalSearchParams } from 'expo-router';
-import { useMemo, useState } from 'react';
+import { router, useLocalSearchParams, useNavigation } from 'expo-router';
+import { useLayoutEffect, useMemo, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { RadarChart } from '@/components/progress/RadarChart';
@@ -25,6 +25,20 @@ export default function TemplateDetailScreen() {
     if (!id) return null;
     return getTemplateById(id) ?? personalTemplates.find((t) => t.id === id) ?? null;
   }, [id, personalTemplates]);
+
+  const navigation = useNavigation();
+
+  // A2: drive the header title from the resolved template + selected day so it
+  // reads as a human string ("Bench Press · Day 1") instead of the raw route
+  // path. Falls back to the static layout title while the template resolves.
+  // useLayoutEffect (not useEffect) so the title is set before paint and never
+  // flashes the raw path. The root hydration gate guarantees this screen only
+  // mounts after stores hydrate, so there's no SSR useLayoutEffect warning.
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      title: template ? `${template.name} · Day ${selectedDayIndex + 1}` : 'Template',
+    });
+  }, [navigation, template, selectedDayIndex]);
 
   if (!template) {
     return (

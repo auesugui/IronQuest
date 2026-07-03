@@ -3,9 +3,10 @@
 // =============================================================================
 
 import { Tabs, router } from 'expo-router';
-import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Platform, Pressable, StyleSheet, Text } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { TabIcon } from '@/components/icons/TabIcon';
 import { colors, spacing } from '@/theme';
 
 export default function TabLayout() {
@@ -42,28 +43,28 @@ export default function TabLayout() {
         name="index"
         options={{
           title: 'Quest Board',
-          tabBarIcon: ({ color }) => <TabIcon name="clipboard" color={color} />,
+          tabBarIcon: ({ focused }) => <TabIcon name="quest" focused={focused} />,
         }}
       />
       <Tabs.Screen
         name="den"
         options={{
           title: 'The Den',
-          tabBarIcon: ({ color }) => <TabIcon name="heart" color={color} />,
+          tabBarIcon: ({ focused }) => <TabIcon name="den" focused={focused} />,
         }}
       />
       <Tabs.Screen
         name="tower"
         options={{
           title: 'Tower',
-          tabBarIcon: ({ color }) => <TabIcon name="triangle" color={color} />,
+          tabBarIcon: ({ focused }) => <TabIcon name="tower" focused={focused} />,
         }}
       />
       <Tabs.Screen
         name="profile"
         options={{
           title: 'Profile',
-          tabBarIcon: ({ color }) => <TabIcon name="person" color={color} />,
+          tabBarIcon: ({ focused }) => <TabIcon name="profile" focused={focused} />,
         }}
       />
       {/* History is reachable from the home screen, not the tab bar. `href:
@@ -89,25 +90,7 @@ export default function TabLayout() {
   );
 }
 
-// Simple icon component (will be replaced with proper icons)
-function TabIcon({ name, color }: { name: string; color: string }) {
-  // Placeholder - will use expo-symbols or react-native-vector-icons
-  return (
-    <View
-      style={[
-        styles.iconPlaceholder,
-        { backgroundColor: color + '30' }, // 30 = 19% opacity in hex
-      ]}
-    />
-  );
-}
-
 const styles = StyleSheet.create({
-  iconPlaceholder: {
-    width: 24,
-    height: 24,
-    borderRadius: 4,
-  },
   headerBack: {
     fontSize: 17,
     color: colors.reward.fp,
