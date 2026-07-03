@@ -3,11 +3,19 @@
 // =============================================================================
 
 import { router } from 'expo-router';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { TemplateCard } from '@/components/workout/TemplateCard';
+import { CURRENT_TOWER_FLOOR } from '@/config';
 import { WORKOUT_TEMPLATES } from '@/data';
-import { selectTotalFP, usePlayerStore, useTemplateStore } from '@/stores';
+import { countClaimedInLast7Days } from '@/lib/history-stats';
+import {
+  selectTotalFP,
+  usePRStore,
+  usePlayerStore,
+  useTemplateStore,
+  useWorkoutHistoryStore,
+} from '@/stores';
 import { colors, radius, spacing, textStyles } from '@/theme';
 
 export default function QuestBoardScreen() {
@@ -15,6 +23,10 @@ export default function QuestBoardScreen() {
   const streak = usePlayerStore((state) => state.streak.current);
   const totalWorkouts = usePlayerStore((state) => state.totalWorkouts);
   const personalTemplates = useTemplateStore((state) => state.templates);
+
+  // Quick Stats — real store data, not hardcoded literals.
+  const workoutsThisWeek = useWorkoutHistoryStore((s) => countClaimedInLast7Days(s.logs));
+  const prCount = usePRStore((state) => state.totalPRCount);
 
   const handleTemplatePress = (templateId: string) => {
     router.push(`/workout/template/${templateId}`);
@@ -40,10 +52,18 @@ export default function QuestBoardScreen() {
         <Text style={styles.sectionTitle}>Quick Stats</Text>
         <View style={styles.statsGrid}>
           <StatCard label="Workouts" value={totalWorkouts.toString()} />
-          <StatCard label="This Week" value="0" />
-          <StatCard label="PRs" value="0" />
-          <StatCard label="Tower Floor" value="1" />
+          <StatCard label="This Week" value={workoutsThisWeek.toString()} />
+          <StatCard label="PRs" value={prCount.toString()} />
+          <StatCard label="Tower Floor" value={CURRENT_TOWER_FLOOR.toString()} />
         </View>
+      </View>
+
+      {/* Workout History — reachable from the Quest Board (issue #18). */}
+      <View style={styles.section}>
+        <Pressable style={styles.historyButton} onPress={() => router.push('/(tabs)/history')}>
+          <Text style={styles.historyButtonText}>Workout History</Text>
+          <Text style={styles.historyChevron}>›</Text>
+        </Pressable>
       </View>
 
       {/* Templates Section */}
@@ -170,5 +190,21 @@ const styles = StyleSheet.create({
     ...textStyles.caption,
     color: colors.text.secondary,
     marginTop: spacing[1],
+  },
+  historyButton: {
+    backgroundColor: colors.background.secondary,
+    borderRadius: radius.lg,
+    padding: spacing[4],
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  historyButtonText: {
+    ...textStyles.h4,
+    color: colors.text.primary,
+  },
+  historyChevron: {
+    ...textStyles.h3,
+    color: colors.text.muted,
   },
 });
