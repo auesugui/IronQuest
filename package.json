@@ -16,7 +16,7 @@
     "test:prd": "node verify-prd-specs.js",
     "test:fp": "node verify-fp-system.js",
     "test:e2e": "npx playwright test --project=mobile-chrome",
-    "test:visual": "node visual-test.js",
+    "test:visual": "node scripts/dev/visual-test.js",
     "test:all": "npm run test:fp && npm run test:visual",
     "check:shadow": "./scripts/check-shadow-calculators.sh",
     "verify": "node verify.js"

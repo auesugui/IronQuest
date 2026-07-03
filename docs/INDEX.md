@@ -1,6 +1,6 @@
 # Iron Quest — Documentation Index
 
-> **Version:** 2.0 + Addendum 2.1 + Amendments | **Status:** Planning Phase | **Updated:** February 2026
+> **Version:** 2.0 + Addendum 2.1 + Amendments | **Status:** Phase 1 Implementation (in progress) | **Updated:** July 2026
 
 ---
 
