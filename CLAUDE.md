@@ -1,6 +1,6 @@
 # IronQuest - Project Instructions
 
-> **Version:** 1.0 | **Status:** Planning Phase | **Updated:** February 2026
+> **Version:** 1.1 | **Status:** Phase 1 Implementation (in progress) | **Updated:** July 2026
 
 ---
 
