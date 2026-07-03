@@ -1,90 +1,98 @@
 // =============================================================================
 // IronQuest Workout Summary Screen
 // =============================================================================
+// Reads a workout by ID (never a full payload from URL params), renders the FP
+// breakdown, and claims rewards exactly once. The idempotency guard lives in
+// the history store's `claimRewards` (checks `claimedAt`); this screen only
+// awards FP when that call returns a log. Reloading the summary URL restores
+// the already-claimed log from storage, so a second "claim" is a no-op.
 
 import { router, useLocalSearchParams } from 'expo-router';
-import { useEffect, useRef, useState } from 'react';
+import { useMemo } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { type WorkoutSummary, calculateWorkoutSummary } from '@/lib/workout-summary';
-import { useBaselineStore, usePetStore, usePlayerStore, useWorkoutStore } from '@/stores';
+import {
+  useBaselineStore,
+  usePetStore,
+  usePlayerStore,
+  useWorkoutHistoryStore,
+  useWorkoutStore,
+} from '@/stores';
 import { colors, radius, spacing, textStyles } from '@/theme';
-import type { Exercise, SessionIntent } from '@/types';
 import { haptics } from '@/utils/haptics';
 
 export default function WorkoutSummaryScreen() {
   const insets = useSafeAreaInsets();
   const params = useLocalSearchParams();
 
-  const [summary, setSummary] = useState<WorkoutSummary | null>(null);
-  const hasCalculated = useRef(false);
+  const workoutId = typeof params.workoutId === 'string' ? params.workoutId : undefined;
 
-  useEffect(() => {
-    // Only calculate once
-    if (hasCalculated.current) return;
+  // Reactive lookup: undefined until the store hydrates (on reload) or if the
+  // id is invalid. The found log reference is stable until claim mutates it.
+  const log = useWorkoutHistoryStore((s) =>
+    workoutId ? s.logs.find((l) => l.id === workoutId) : undefined
+  );
+  const hydrated = useWorkoutHistoryStore((s) => s.hydrated);
 
-    // Parse workout data from params (passed before navigation)
-    if (params.exercises && params.duration) {
-      hasCalculated.current = true;
-      try {
-        const exercises = JSON.parse(params.exercises as string) as Exercise[];
-        const duration = Number.parseInt(params.duration as string, 10);
-        const streakDays = Number.parseInt((params.streakDays as string) || '0', 10);
-        const intent = ((params.intent as string) || 'normal') as SessionIntent;
+  const summary: WorkoutSummary | null = useMemo(() => {
+    if (!log) return null;
 
-        // Collect per-exercise baselines for relative FP scaling. Null baselines
-        // are omitted; the engine falls back to absolute volume calc for those.
-        const baselineStore = useBaselineStore.getState();
-        const baselines: Record<string, number> = {};
-        for (const ex of exercises) {
-          const b = baselineStore.getBaseline(ex.id);
-          if (b !== null) baselines[ex.id] = b;
-        }
-
-        const workoutSummary = calculateWorkoutSummary(
-          exercises,
-          duration,
-          streakDays,
-          intent,
-          Object.keys(baselines).length > 0 ? baselines : undefined
-        );
-        setSummary(workoutSummary);
-      } catch (e) {
-        console.error('Failed to parse workout summary:', e);
-      }
+    // Collect per-exercise baselines for relative FP scaling. Null baselines
+    // are omitted; the engine falls back to absolute volume calc for those.
+    const baselineStore = useBaselineStore.getState();
+    const baselines: Record<string, number> = {};
+    for (const ex of log.exercises) {
+      const b = baselineStore.getBaseline(ex.id);
+      if (b !== null) baselines[ex.id] = b;
     }
-  }, [params.exercises, params.duration, params.streakDays, params.intent]);
+
+    return calculateWorkoutSummary(
+      log.exercises,
+      log.durationSeconds,
+      log.streakDays,
+      log.sessionIntent,
+      Object.keys(baselines).length > 0 ? baselines : undefined
+    );
+  }, [log]);
 
   const handleFinish = () => {
+    if (!summary || !log) return;
+
+    // Idempotency boundary: first claim returns the log, every replay returns
+    // null and we no-op (no FP, no navigation). This is the URL-replay fix.
+    const claimed = useWorkoutHistoryStore.getState().claimRewards(log.id, {
+      totalFP: summary.totalFP,
+      fpEarned: summary.typedFP,
+    });
+    if (!claimed) return;
+
     haptics.success();
 
-    // Award FP to player
-    if (summary) {
-      // Add typed FP to player balance (distributed by muscle groups)
-      usePlayerStore.getState().addMultipleFP(summary.typedFP);
+    // Add typed FP to player balance (distributed by muscle groups + Spirit)
+    usePlayerStore.getState().addMultipleFP(summary.typedFP);
 
-      // Add to pet's total FP earned (for evolution)
-      usePetStore.getState().addFP(summary.totalFP);
+    // Add to pet's total FP earned (for evolution)
+    usePetStore.getState().addFP(summary.totalFP);
 
-      // Update streak
-      usePlayerStore.getState().updateStreak(true);
+    // Update streak
+    usePlayerStore.getState().updateStreak(true);
 
-      // Increment workout count
-      usePlayerStore.getState().incrementWorkoutCount();
+    // Increment workout count
+    usePlayerStore.getState().incrementWorkoutCount();
 
-      // Update per-exercise baselines for future relative-FP scaling.
-      // Session max = highest weight × reps across logged sets.
-      const baselineStore = useBaselineStore.getState();
-      for (const ex of summary.exercises) {
-        const loggedSets = ex.sets.filter((s) => s.logged);
-        if (loggedSets.length === 0) continue;
-        const sessionMax = loggedSets.reduce(
-          (max, s) => Math.max(max, (s.weight ?? 0) * (s.reps ?? 0)),
-          0
-        );
-        if (sessionMax > 0) baselineStore.recordSession(ex.id, sessionMax);
-      }
+    // Update per-exercise baselines for future relative-FP scaling.
+    // Session max = highest weight × reps across logged sets.
+    const baselineStore = useBaselineStore.getState();
+    for (const ex of summary.exercises) {
+      const loggedSets = ex.sets.filter((s) => s.logged);
+      if (loggedSets.length === 0) continue;
+      const sessionMax = loggedSets.reduce(
+        (max, s) => Math.max(max, (s.weight ?? 0) * (s.reps ?? 0)),
+        0
+      );
+      if (sessionMax > 0) baselineStore.recordSession(ex.id, sessionMax);
     }
 
     // End the session and go home
@@ -98,7 +106,8 @@ export default function WorkoutSummaryScreen() {
     return `${mins}m ${secs}s`;
   };
 
-  if (!summary) {
+  // Loading state while the history store rehydrates from storage (reload path).
+  if (!hydrated) {
     return (
       <View style={styles.container}>
         <View style={styles.loading}>
@@ -107,6 +116,23 @@ export default function WorkoutSummaryScreen() {
       </View>
     );
   }
+
+  // No log for this id (e.g. stale/invalid link) — nothing to claim, nothing
+  // to re-award. This is the safe fallback for the replay exploit.
+  if (!log || !summary) {
+    return (
+      <View style={styles.container}>
+        <View style={styles.loading}>
+          <Text style={styles.loadingText}>Workout not found.</Text>
+          <Pressable style={styles.backButton} onPress={() => router.replace('/(tabs)')}>
+            <Text style={styles.backButtonText}>Go Home</Text>
+          </Pressable>
+        </View>
+      </View>
+    );
+  }
+
+  const alreadyClaimed = log.claimedAt !== null;
 
   return (
     <View style={styles.container}>
@@ -157,6 +183,13 @@ export default function WorkoutSummaryScreen() {
               </Text>
             </View>
           )}
+
+          {summary.spiritFP > 0 && (
+            <View style={styles.breakdownRow}>
+              <Text style={styles.breakdownLabel}>Spirit (streak bonus)</Text>
+              <Text style={styles.breakdownValueHighlight}>+{summary.spiritFP} Spirit FP</Text>
+            </View>
+          )}
         </View>
 
         {/* Stats */}
@@ -185,7 +218,7 @@ export default function WorkoutSummaryScreen() {
         <View style={styles.exercisesCard}>
           <Text style={styles.exercisesTitle}>Exercises Completed</Text>
 
-          {summary.exercises.map((exercise, index) => {
+          {summary.exercises.map((exercise) => {
             const loggedSets = exercise.sets.filter((s) => s.logged);
             const exerciseReps = loggedSets.reduce((sum, s) => sum + (s.reps ?? 0), 0);
 
@@ -210,8 +243,14 @@ export default function WorkoutSummaryScreen() {
 
       {/* Finish Button */}
       <View style={[styles.footer, { paddingBottom: insets.bottom + spacing[4] }]}>
-        <Pressable style={styles.finishButton} onPress={handleFinish}>
-          <Text style={styles.finishButtonText}>Claim Rewards</Text>
+        <Pressable
+          style={[styles.finishButton, alreadyClaimed && styles.finishButtonClaimed]}
+          onPress={handleFinish}
+          disabled={alreadyClaimed}
+        >
+          <Text style={styles.finishButtonText}>
+            {alreadyClaimed ? 'Rewards Claimed' : 'Claim Rewards'}
+          </Text>
         </Pressable>
       </View>
     </View>
@@ -237,6 +276,17 @@ const styles = StyleSheet.create({
   loadingText: {
     ...textStyles.body,
     color: colors.text.secondary,
+    marginBottom: spacing[4],
+  },
+  backButton: {
+    backgroundColor: colors.background.secondary,
+    paddingHorizontal: spacing[4],
+    paddingVertical: spacing[2],
+    borderRadius: radius.md,
+  },
+  backButtonText: {
+    ...textStyles.button,
+    color: colors.text.primary,
   },
   header: {
     alignItems: 'center',
@@ -382,6 +432,9 @@ const styles = StyleSheet.create({
     borderRadius: radius.lg,
     paddingVertical: spacing[4],
     alignItems: 'center',
+  },
+  finishButtonClaimed: {
+    backgroundColor: colors.background.tertiary,
   },
   finishButtonText: {
     ...textStyles.buttonLarge,
