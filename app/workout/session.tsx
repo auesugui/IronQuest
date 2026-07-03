@@ -8,7 +8,12 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { SetInputModal } from '@/components/workout/SetInputModal';
-import { useWeightHistoryStore, useWorkoutStore } from '@/stores';
+import {
+  usePlayerStore,
+  useWeightHistoryStore,
+  useWorkoutHistoryStore,
+  useWorkoutStore,
+} from '@/stores';
 import { colors, radius, spacing, textStyles } from '@/theme';
 import { haptics } from '@/utils/haptics';
 
@@ -136,19 +141,29 @@ export default function WorkoutSessionScreen() {
 
   const handleFinishWorkout = () => {
     haptics.success();
-    const { intent } = useWorkoutStore.getState();
-    // Navigate to summary with workout data
-    const workoutData = {
-      exercises: JSON.stringify(exercises),
-      duration: Math.floor(
-        (Date.now() - (useWorkoutStore.getState().startedAt || Date.now())) / 1000
-      ),
-      streakDays: 0, // TODO: Get from streak store when implemented
-      intent,
-    };
+    const workoutStoreState = useWorkoutStore.getState();
+    const { intent, startedAt } = workoutStoreState;
+
+    const duration = Math.floor((Date.now() - (startedAt || Date.now())) / 1000);
+    // Streak multiplier + Spirit FP are sourced from the live streak store, not
+    // hardcoded. This wiring is what un-deads the streak multiplier (1.0×–2.0×)
+    // and the entire Spirit FP economy (issue #16 / audit C2).
+    const streakDays = usePlayerStore.getState().streak.current;
+
+    // Persist the workout record BEFORE navigating. The summary receives only
+    // this id — never the full payload as URL params — so reloading the summary
+    // URL can no longer re-create the award context. Idempotency is enforced
+    // downstream by `claimRewards` checking `claimedAt` (issue #16 / audit C1).
+    const workoutId = useWorkoutHistoryStore.getState().createLog({
+      exercises: workoutStoreState.exercises,
+      durationSeconds: duration,
+      streakDays,
+      sessionIntent: intent,
+    });
+
     router.replace({
       pathname: '/workout/summary',
-      params: workoutData,
+      params: { workoutId },
     });
   };
 

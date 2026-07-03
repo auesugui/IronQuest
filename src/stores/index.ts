@@ -35,3 +35,4 @@ export {
 export { usePRStore } from './prStore';
 export { useBaselineStore } from './baselineStore';
 export { useTemplateStore } from './templateStore';
+export { useWorkoutHistoryStore } from './workoutHistoryStore';

@@ -117,16 +117,30 @@ export interface WorkoutSession {
   gymRushActive: boolean;
 }
 
+/**
+ * A persisted record of a finished workout session.
+ *
+ * Created at session finish (BEFORE navigation to the summary) and updated
+ * once when its FP rewards are claimed. `claimedAt` is the idempotency key:
+ * null until claimed, an ISO timestamp after. The FP award path must no-op
+ * when `claimedAt` is already set — this is what kills the URL-replay
+ * double-claim exploit (issue #16 / audit C1).
+ *
+ * `streakDays` is snapshotted at finish time so the summary renders the same
+ * multiplier/Spirit FP on reload that it did the first time.
+ */
 export interface WorkoutLog {
   id: string;
-  playerId: string;
-  timestamp: string;
-  type: WorkoutType;
+  timestamp: string; // ISO — when the session was finished
   exercises: Exercise[];
-  durationMinutes: number;
-  fpEarned: FPBalances;
-  prs: PRRecord[];
+  durationSeconds: number;
+  streakDays: number; // streak snapshot at finish time
   sessionIntent: SessionIntent;
+  /** Idempotency key: null until FP is claimed, ISO timestamp once claimed. */
+  claimedAt: string | null;
+  /** Captured at claim time for the future history screen. null until claimed. */
+  totalFP: number | null;
+  fpEarned: FPBalances | null;
 }
 
 export interface PRRecord {

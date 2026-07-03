@@ -1,11 +1,11 @@
 // =============================================================================
 // IronQuest Workout Summary Adapter
 // =============================================================================
-// Thin wrapper over the FP engine (`calculateSessionFP`) that produces the
-// shape the summary UI renders. The UI must not re-implement FP math —
-// engines are the source of truth, this adapter only maps fields.
+// Thin wrapper over the FP engine (`calculateSessionFP` + `calculateSpiritFP`)
+// that produces the shape the summary UI renders. The UI must not re-implement
+// FP math — engines are the source of truth, this adapter only maps fields.
 
-import { calculateSessionFP } from '@/engine/fp';
+import { calculateSessionFP, calculateSpiritFP } from '@/engine/fp';
 import type { Exercise, FPBalances, SessionIntent, WorkoutSession } from '@/types';
 
 export interface WorkoutSummary {
@@ -16,7 +16,14 @@ export interface WorkoutSummary {
     prBonus: number;
     streakMultiplier: number;
   };
-  typedFP: Partial<FPBalances>;
+  typedFP: FPBalances;
+  /**
+   * Spirit FP earned from the streak (streak-exclusive source). Reported
+   * separately from totalFP because Spirit is a distinct balance that does
+   * NOT feed pet evolution — only the Spirit stat is upgraded with it.
+   * Folded into typedFP.spirit so the existing addMultipleFP path awards it.
+   */
+  spiritFP: number;
   exercises: Exercise[];
   duration: number;
   totalReps: number;
@@ -57,6 +64,14 @@ export function calculateWorkoutSummary(
     baselines
   );
 
+  // Spirit FP is the streak-exclusive economy. The engine's typed distributor
+  // deliberately leaves Spirit at 0 ("Spirit only from streaks"), so the streak
+  // contribution is layered on here from its own engine function. This is the
+  // only path that ever populates typedFP.spirit — wiring it is what un-deads
+  // the Spirit stat (issue #16 / audit C2).
+  const spiritFP = calculateSpiritFP(streakDays);
+  const typedFP: FPBalances = { ...result.typed, spirit: spiritFP };
+
   // Display-only aggregates the engine doesn't return.
   const loggedSets = exercises.flatMap((e) => e.sets.filter((s) => s.logged));
   const totalReps = loggedSets.reduce((sum, s) => sum + (s.reps ?? 0), 0);
@@ -70,7 +85,8 @@ export function calculateWorkoutSummary(
       prBonus: result.breakdown.pr,
       streakMultiplier: result.streakMultiplier,
     },
-    typedFP: result.typed,
+    typedFP,
+    spiritFP,
     exercises,
     duration,
     totalReps,
