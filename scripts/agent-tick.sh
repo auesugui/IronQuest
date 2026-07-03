@@ -91,6 +91,25 @@ echo ""
 echo "=== Creating worktree ==="
 mkdir -p "$WORKTREE_BASE" "$RUNS_DIR"
 
+# From this point on, an unexpected abort (push failure, gh outage, set -e on
+# anything) leaves a worktree + branch behind. Without this trap the next run
+# just hits "worktree already exists" with no context. Print exact recovery
+# steps instead of failing silently.
+on_abort() {
+  local rc=$?
+  [[ $rc -eq 0 ]] && return 0
+  echo "" >&2
+  echo "=== TICK ABORTED (exit $rc) ===" >&2
+  echo "  State left in place for debugging:" >&2
+  echo "    Worktree: $WORKTREE" >&2
+  echo "    Branch:   $BRANCH" >&2
+  echo "    Raw log:  $RAW_STREAM" >&2
+  echo "  To reset:" >&2
+  echo "    git worktree remove --force $WORKTREE" >&2
+  echo "    git branch -D $BRANCH" >&2
+}
+trap on_abort EXIT
+
 git worktree add -b "$BRANCH" "$WORKTREE" "$BASE_BRANCH"
 echo "  Branch: $BRANCH"
 echo "  Path:   $WORKTREE"
@@ -144,6 +163,15 @@ echo ""
   echo "   - What you found when investigating (was the work already partly done?)"
   echo "   - What you changed (files + brief rationale)"
   echo "   - How you verified (test counts, typecheck status, CDT snapshots)"
+  echo "   - **## Findings (out of scope)** — REQUIRED section, even if it just says 'none'."
+  echo "     List every defect you NOTICED but did not fix because it was outside the issue's"
+  echo "     acceptance criteria: TODO comments in code you touched, dead wiring (a value that"
+  echo "     should come from a store but is hardcoded), spec violations, placeholder UI, and"
+  echo "     contradictions between docs and code. One line each: file:line + what's wrong."
+  echo "     Context: the 2026-07 audit found an agent tick that had 'streakDays: 0 // TODO'"
+  echo "     inside its own diff and shipped around it without reporting it — that TODO turned"
+  echo "     out to disable the entire streak-multiplier and Spirit FP economy. Scope fidelity"
+  echo "     is correct behavior; silent scope fidelity is not. Report what you see."
   echo "9. DO NOT push. DO NOT open a PR. DO NOT perform any remote git operation."
   echo ""
   echo "Your work will be pushed and a PR will be opened automatically after you exit."
@@ -159,6 +187,12 @@ echo ""
 
 # --output-format=json emits a single result object with cost + usage data.
 # Capture to a file so we can surface real spend (vs. just the cap) in the PR.
+# NOTE: `set -e` is suspended around the invocation. Without this, a nonzero
+# exit from claude (crash, over-budget kill, auth failure) aborted the whole
+# script HERE — the JSON-fallback branch below was unreachable dead code, the
+# log never got assembled, and the worktree+branch were orphaned with no
+# explanation. (Latent since the original script; surfaced by 2026-07 audit.)
+set +e
 (
   cd "$WORKTREE"
   claude -p "$(cat "$OLDPWD/$PROMPT_FILE")" \
@@ -170,6 +204,12 @@ echo ""
     2>"$OLDPWD/$RAW_STREAM"
 )
 CLAUDE_EXIT=$?
+set -e
+
+if [[ $CLAUDE_EXIT -ne 0 ]]; then
+  echo "WARNING: claude exited nonzero ($CLAUDE_EXIT) — likely crash or budget cap."
+  echo "  Continuing to log assembly + commit check; raw stderr: $RAW_STREAM"
+fi
 
 # Build a human-readable log from the JSON. If JSON parsing fails (claude
 # crashed, ran over budget, etc.), fall back to the raw stream so the log
@@ -225,9 +265,12 @@ echo "=== Parsing verification status ==="
 
 # Required labels: create idempotently if missing. Colors follow traffic-light convention.
 # Create once per repo; --force would clobber user edits, so use the missing-check pattern.
+# agent-generated is included: gh pr create fails outright if any --label is
+# missing, and only the verification-* labels were being auto-created before.
 for label_spec in "verification-browser-checked:22863A" \
                   "verification-test-only:B54708" \
-                  "verification-unknown:9F1B1B"; do
+                  "verification-unknown:9F1B1B" \
+                  "agent-generated:5319E7"; do
   label_name="${label_spec%%:*}"
   label_color="${label_spec##*:}"
   if ! gh label list --repo "$REPO" --json name --jq '.[].name' 2>/dev/null \
