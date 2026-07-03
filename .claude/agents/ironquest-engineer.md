@@ -172,11 +172,16 @@ volume_bonus = floor((session_volume / baseline_volume - 1) × 100)
 
 Single source of truth: `src/config/fp-values.ts`. All tuneable values live there.
 
-### Type Triangle — ⚠️ DECISION PENDING (do not propagate either taxonomy)
+### Type Triangle — RESOLVED 2026-07-03 (Q1 → 3 types)
 
-The docs specify **3 types (Ferro/Terra/Flux)**; the code ships **5 different types** (`ignis/terra/aqua/ventus/umbra` in `src/types/index.ts`). Both appear in the live UI. This is open question **Q1** in `AUDIT-AND-ROADMAP-2026-07.md` and is Adrian's call. Until resolved: do NOT write new UI copy, onboarding, or battle logic that hard-codes either set. If an issue requires touching pet types, flag the conflict in your summary's Findings section and stop.
+**Decision:** 3 types — Ferro / Flux / Terra (cyclic triangle). Resolves Q1 from `AUDIT-AND-ROADMAP-2026-07.md`.
 
-Docs' intended triangle (reference, once Q1 resolves to 3 types):
+The codebase currently ships 5 stale types (`ignis/terra/aqua/ventus/umbra` in `src/types/index.ts`) — leftovers from an earlier exploration that was never reverted. The migration to 3 types is part of NEXT-phase pet work (onboarding flow + avatar identity pass). Until that migration ships:
+- New UI copy, onboarding, battle logic, and pet onboarding MUST use the 3-type taxonomy (Ferro/Flux/Terra)
+- Touching existing 5-type code is fine if you're migrating it toward 3 types as part of NEXT-phase work
+- Do NOT add new 5-type references anywhere
+
+Reference triangle:
 ```
 Ferro → Flux → Terra → Ferro (cyclic) · advantage 1.3x dealt / 0.8x taken
 ```
