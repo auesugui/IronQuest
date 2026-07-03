@@ -83,12 +83,36 @@ export default function WorkoutSessionScreen() {
   const currentExercise = exercises[currentExerciseIndex];
   const totalReps = getTotalReps();
 
-  // Quick log from preset buttons
+  // Reactive last-used weight for the current exercise — drives the chip-row
+  // hint AND mirrors what the next quick-tap will log. Subscribing (rather
+  // than calling getLastWeight in render) means a modal save instantly
+  // re-renders the chips with the new weight.
+  const currentWeight = useWeightHistoryStore(
+    (state) => state.history[currentExercise.id]?.lastWeight ?? null
+  );
+  const hasWeight = currentWeight !== null && currentWeight > 0;
+
+  // Quick log from preset buttons.
+  //
+  // The fast path must capture real weight, not null (audit A4 / issue #22).
+  // We auto-fill from the exercise's last-used weight in weightHistoryStore —
+  // the same store the modal path writes to — so quick-taps produce
+  // volume/PR-real data without breaking the 3-second rule.
+  //
+  // Fallback is `undefined` (→ stored as `null`) when there's no history or
+  // the stored value is non-positive. We deliberately do NOT fall back to 0:
+  // logSet's `weight ?? null` would store 0, `saveWeight(id, 0)` would pollute
+  // weightHistory so the next chip shows "@ 0 lb", and the summary's volume
+  // calc treats null and 0 identically (`(weight ?? 0) * reps`). Null keeps
+  // the set volume-neutral, history-clean, and PR-silent.
   const handleQuickLog = (setIndex: number, reps: number) => {
     if (!currentExercise) return;
 
+    const lastWeight = getLastWeight(currentExercise.id);
+    const quickWeight = lastWeight && lastWeight > 0 ? lastWeight : undefined;
+
     haptics.success();
-    logSet(currentExerciseIndex, setIndex, reps);
+    logSet(currentExerciseIndex, setIndex, reps, quickWeight);
     startRestTimer(currentExercise.restSeconds);
   };
 
@@ -319,7 +343,16 @@ export default function WorkoutSessionScreen() {
                 key={index}
                 style={styles.setRow}
               >
-                <Text style={styles.setNumber}>Set {index + 1}</Text>
+                <View style={styles.setRowHeader}>
+                  <Text style={styles.setNumber}>Set {index + 1}</Text>
+                  {!set.logged && (
+                    <Text style={styles.weightHint}>
+                      {hasWeight
+                        ? `@ ${currentWeight} lb · tap ... to change`
+                        : 'no weight · tap ... to set'}
+                    </Text>
+                  )}
+                </View>
 
                 {set.logged ? (
                   <Pressable style={styles.loggedSet} onPress={() => handleEditSet(index)}>
@@ -556,10 +589,20 @@ const styles = StyleSheet.create({
     borderRadius: radius.lg,
     padding: spacing[3],
   },
+  setRowHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: spacing[2],
+    gap: spacing[2],
+  },
   setNumber: {
     ...textStyles.label,
     color: colors.text.muted,
-    marginBottom: spacing[2],
+  },
+  weightHint: {
+    ...textStyles.caption,
+    color: colors.text.muted,
   },
   loggedSet: {
     flexDirection: 'row',
