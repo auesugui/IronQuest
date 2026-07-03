@@ -15,7 +15,9 @@ import {
   useWorkoutStore,
 } from '@/stores';
 import { colors, radius, spacing, textStyles } from '@/theme';
+import { showAlert } from '@/utils/alert';
 import { haptics } from '@/utils/haptics';
+import { confirmEndSession } from '@/workout/endSessionGuard';
 
 interface SetEditState {
   exerciseIndex: number;
@@ -45,6 +47,7 @@ export default function WorkoutSessionScreen() {
   const previousExercise = useWorkoutStore((state) => state.previousExercise);
   const setCurrentExercise = useWorkoutStore((state) => state.setCurrentExercise);
   const endSession = useWorkoutStore((state) => state.endSession);
+  const getCompletedSets = useWorkoutStore((state) => state.getCompletedSets);
   const getTotalReps = useWorkoutStore((state) => state.getTotalReps);
 
   // Weight history for auto-fill
@@ -133,10 +136,17 @@ export default function WorkoutSessionScreen() {
     setSetEdit((prev) => ({ ...prev, visible: false }));
   };
 
+  // "End" means "throw this session away" — the opposite of "Finish". With any
+  // logged sets still unclaimed, force a confirm so a mis-tap can't discard
+  // real work (audit A1 / issue #20). Empty sessions end with no friction.
   const handleEndSession = () => {
     haptics.heavy();
-    endSession();
-    router.back();
+    confirmEndSession({
+      completedSets: getCompletedSets(),
+      endSession,
+      navigateBack: () => router.back(),
+      showAlert,
+    });
   };
 
   const handleFinishWorkout = () => {
