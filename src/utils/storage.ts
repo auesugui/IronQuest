@@ -91,6 +91,10 @@ export const STORAGE_KEYS = {
   PERSONAL_TEMPLATES: {
     FULL_STATE: 'personal_templates.full_state',
   },
+  // Workout history — persisted WorkoutLog records (idempotent FP claim)
+  WORKOUT_HISTORY: {
+    FULL_STATE: 'workout_history.full_state',
+  },
   // Misc
   SCHEMA_VERSION: 'schema_version',
 } as const;

@@ -234,3 +234,58 @@ describe('calculateWorkoutSummary — Personal Baseline relative scaling', () =>
     expect(summary.breakdown.volumeBonus).toBe(0);
   });
 });
+
+// =============================================================================
+// Spirit FP + streak wiring (issue #16 / audit C2 regression)
+// =============================================================================
+// Spirit FP is the streak-exclusive economy. `calculateSpiritFP` used to be
+// defined but never called, so Spirit FP was always 0 and the Spirit stat was
+// permanently locked. The adapter now layers it onto typedFP.spirit.
+describe('calculateWorkoutSummary — Spirit FP (streak-only, issue #16 regression)', () => {
+  it('produces Spirit FP > 0 when claiming on a ≥1-day streak', () => {
+    const exercises: Exercise[] = [makeExercise({ sets: [makeSet({ reps: 10 })] })];
+
+    const summary = calculateWorkoutSummary(exercises, 600, 1, 'normal');
+
+    // dailySpirit = 5/day → streak 1 = 5 Spirit FP
+    expect(summary.spiritFP).toBe(5);
+    // And it is folded into the typed distribution that feeds addMultipleFP
+    expect(summary.typedFP.spirit).toBe(5);
+  });
+
+  it('accumulates daily Spirit FP and applies milestone bonuses by streak day', () => {
+    const exercises: Exercise[] = [makeExercise({ sets: [makeSet({ reps: 10 })] })];
+
+    // streak 7: 7*5 daily + 15 (7-day milestone) = 50
+    const s7 = calculateWorkoutSummary(exercises, 600, 7, 'normal');
+    expect(s7.spiritFP).toBe(50);
+
+    // streak 30: 30*5 + 15 + 30 + 50 (milestones) = 245
+    const s30 = calculateWorkoutSummary(exercises, 600, 30, 'normal');
+    expect(s30.spiritFP).toBe(245);
+  });
+
+  it('Spirit FP is independent of totalFP (Spirit does not feed evolution)', () => {
+    const exercises: Exercise[] = [makeExercise({ sets: [makeSet({ reps: 10 })] })];
+
+    const summary = calculateWorkoutSummary(exercises, 600, 5, 'normal');
+
+    // totalFP is the generic workout FP (base+volume) × multiplier; Spirit is
+    // reported separately and must not inflate it.
+    // streak(5) multiplier = 1.5; subtotal = 100 + 1 = 101; total = floor(151) = 151
+    expect(summary.totalFP).toBe(151);
+    expect(summary.spiritFP).toBe(25); // 5*5 daily, no milestone yet
+  });
+
+  it('streakDays=0 (first-ever workout) still works and earns 0 Spirit FP', () => {
+    const exercises: Exercise[] = [makeExercise({ sets: [makeSet({ reps: 10 })] })];
+
+    const summary = calculateWorkoutSummary(exercises, 600, 0, 'normal');
+
+    // No regression: multiplier 1.0, total = 100 + 1 = 101, Spirit 0.
+    expect(summary.breakdown.streakMultiplier).toBe(1.0);
+    expect(summary.totalFP).toBe(101);
+    expect(summary.spiritFP).toBe(0);
+    expect(summary.typedFP.spirit).toBe(0);
+  });
+});
