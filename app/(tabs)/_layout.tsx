@@ -2,11 +2,11 @@
 // IronQuest Tab Navigation Layout
 // =============================================================================
 
-import { Tabs } from 'expo-router';
-import { Platform, StyleSheet, View } from 'react-native';
+import { Tabs, router } from 'expo-router';
+import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { colors } from '@/theme';
+import { colors, spacing } from '@/theme';
 
 export default function TabLayout() {
   const insets = useSafeAreaInsets();
@@ -66,6 +66,25 @@ export default function TabLayout() {
           tabBarIcon: ({ color }) => <TabIcon name="person" color={color} />,
         }}
       />
+      {/* History is reachable from the home screen, not the tab bar. `href:
+          null` keeps the route resolvable via router.push while hiding it as a
+          tab. The explicit header back affordance returns to the Quest Board
+          (tab navigators don't provide one themselves). */}
+      <Tabs.Screen
+        name="history"
+        options={{
+          title: 'Workout History',
+          href: null,
+          headerLeft: () => (
+            <Pressable
+              onPress={() => (router.canGoBack() ? router.back() : router.replace('/(tabs)'))}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            >
+              <Text style={styles.headerBack}>‹ Back</Text>
+            </Pressable>
+          ),
+        }}
+      />
     </Tabs>
   );
 }
@@ -88,5 +107,10 @@ const styles = StyleSheet.create({
     width: 24,
     height: 24,
     borderRadius: 4,
+  },
+  headerBack: {
+    fontSize: 17,
+    color: colors.reward.fp,
+    marginLeft: spacing[2],
   },
 });
