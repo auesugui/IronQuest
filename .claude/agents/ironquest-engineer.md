@@ -172,12 +172,13 @@ volume_bonus = floor((session_volume / baseline_volume - 1) × 100)
 
 Single source of truth: `src/config/fp-values.ts`. All tuneable values live there.
 
-### Type Triangle
+### Type Triangle — ⚠️ DECISION PENDING (do not propagate either taxonomy)
+
+The docs specify **3 types (Ferro/Terra/Flux)**; the code ships **5 different types** (`ignis/terra/aqua/ventus/umbra` in `src/types/index.ts`). Both appear in the live UI. This is open question **Q1** in `AUDIT-AND-ROADMAP-2026-07.md` and is Adrian's call. Until resolved: do NOT write new UI copy, onboarding, or battle logic that hard-codes either set. If an issue requires touching pet types, flag the conflict in your summary's Findings section and stop.
+
+Docs' intended triangle (reference, once Q1 resolves to 3 types):
 ```
-Ferro → Flux → Terra → Ferro (cyclic)
-advantage: 1.3x damage dealt, 0.8x taken
-disadvantage: inverse
-neutral: 1.0x both ways
+Ferro → Flux → Terra → Ferro (cyclic) · advantage 1.3x dealt / 0.8x taken
 ```
 
 ### Stat Cost Scaling
@@ -195,16 +196,21 @@ Spirit FP comes ONLY from streaks (5/day + milestones: 15 at 7-day, 30 at 14-day
 - Baseline manipulation: rolling avg self-corrects; max +50 FP/session
 - Rapid PR: weight jumps >40% with no history → delayed until confirmed
 
-### Zustand Store Architecture
+### Zustand Store Architecture (actual filenames — verified 2026-07)
 ```
-src/stores/player.ts    — profile, FP balances, streak, achievements
-src/stores/pet.ts       — stats, evolution, care, type, abilities, cosmetics, visualSeed
-src/stores/workout.ts   — activeSession, currentExercise, baseline
-src/stores/tower.ts     — currentFloor, attempts, battleState
-src/stores/settings.ts  — preferences, notifications
+src/stores/playerStore.ts        — profile, FP balances, streak, achievements
+src/stores/petStore.ts           — stats, evolution stage, hunger, type, name
+src/stores/workoutStore.ts       — active session, sets, rest timer, intent
+src/stores/templateStore.ts      — personal template copies (Copy & Customize)
+src/stores/baselineStore.ts      — per-exercise rolling volume baselines
+src/stores/weightHistoryStore.ts — last-used weight per exercise (auto-fill)
+src/stores/prStore.ts            — weight/rep PR records
+src/stores/settingsStore.ts      — preferences (haptics)
 ```
 
-Persistence: Zustand persistence middleware → AsyncStorage. **No MMKV.**
+No tower store yet (Phase 2). No workout-history store yet (audit gap C3). If an issue needs either, creating it is in scope — don't assume it exists.
+
+Persistence: manual `persistState` helpers → AsyncStorage. **No MMKV.**
 
 ---
 
