@@ -30,7 +30,7 @@ The same rules apply in both modes.
 | Routing | Expo Router (`app/` directory — **not** `src/screens/`) |
 | State | Zustand |
 | Persistence | **AsyncStorage only** (MMKV was removed for Expo Go compatibility — do not re-introduce) |
-| Animations | Reanimated v3 |
+| Animations | Reanimated v3 (repo currently ships `react-native-reanimated` ~4.1.1) |
 | Pet rendering | react-native-svg (parametric — see `docs/04-pet-system/evolution-and-rendering.md`) |
 | Backend | none yet (Supabase is Phase 3 — out of scope until then) |
 
@@ -89,6 +89,17 @@ CDT MCP is available in interactive mode AND in AFK headless mode (via `scripts/
    - `mcp__chrome-devtools__take_screenshot` for visual confirmation on key transitions
 4. Stop the dev server before committing.
 5. Reference snapshot evidence in your summary file.
+
+### Playwright fallback (legitimized by issue #5)
+
+If CDT MCP is hard-blocked — typically a stale `chrome-devtools-mcp` Chrome holding the profile `SingletonLock`, with `kill`/`pkill` permission-gated in the autonomous environment — Playwright's own Chromium with a separate profile is an acceptable substitute. It drives the identical acceptance flow with the same evidence quality; only the driver differs.
+
+When you fall back, the summary must:
+- Name the fallback explicitly (don't pretend CDT was used)
+- Document what you tried before falling back (CDT `new_page`, `list_pages`, lock-clear attempts)
+- Capture the same evidence (snapshots/screenshots per criterion)
+
+Precedent: issue #5's summary documented exactly this and shipped `verification-browser-checked` on the strength of Playwright evidence.
 
 ### If CDT genuinely fails
 
@@ -201,7 +212,6 @@ Persistence: Zustand persistence middleware → AsyncStorage. **No MMKV.**
 
 | Situation | Skill |
 |-----------|-------|
-| General React patterns, memoization, hooks, state optimization | `vercel-react-best-practices` (web-leaning but applies to shared React fundamentals) |
 | UX/UI polish, color, typography, motion design | `impeccable` |
 | Debugging complex calc bugs, FP formula issues, battle edge cases | `systematic-debugging` |
 
