@@ -4,10 +4,11 @@
 
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { useEffect } from 'react';
-import { Platform } from 'react-native';
+import { useEffect, useState } from 'react';
+import { Platform, View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
+import { ROUTE_TITLES } from '@/navigation/routeTitles';
 import {
   useBaselineStore,
   usePRStore,
@@ -34,8 +35,20 @@ export default function RootLayout() {
   const hydrateWorkoutHistory = useWorkoutHistoryStore((state) => state.hydrate);
   const theme = useSettingsStore((state) => state.theme);
 
+  // A8 hydration gate: stores hydrate from AsyncStorage asynchronously, but the
+  // web build uses static rendering ("output": "static" in app.json), so the
+  // server renders default store state while the client renders persisted state
+  // -> React #418 hydration mismatch on every page load. We gate first paint
+  // behind `isHydrated`: until stores are ready we render a stable placeholder
+  // (a single background-colored View, no store-derived values), which is
+  // identical on the server and the client's first paint. The transition to
+  // real content happens via a normal state update after hydration — not during
+  // React's hydration reconciliation — so #418 cannot fire.
+  const [isHydrated, setIsHydrated] = useState(false);
+
   // Hydrate all stores on mount
   useEffect(() => {
+    let cancelled = false;
     const init = async () => {
       try {
         await migrateStorage();
@@ -52,10 +65,18 @@ export default function RootLayout() {
         ]);
       } catch (error) {
         console.warn('Storage initialization error:', error);
+      } finally {
+        // Always reveal the app, even if hydration errored, so we never hang on
+        // the placeholder forever — default store state is preferable to a
+        // permanent blank screen.
+        if (!cancelled) setIsHydrated(true);
       }
     };
 
     init();
+    return () => {
+      cancelled = true;
+    };
   }, [
     hydratePlayer,
     hydratePet,
@@ -78,6 +99,16 @@ export default function RootLayout() {
   // Determine color scheme
   const isDark = theme === 'dark' || theme === 'system';
 
+  // Stable pre-hydration shell. No store-derived content reaches the DOM here,
+  // so server HTML and client first paint are byte-identical.
+  if (!isHydrated) {
+    return (
+      <SafeAreaProvider>
+        <View style={{ flex: 1, backgroundColor: colors.background.primary }} />
+      </SafeAreaProvider>
+    );
+  }
+
   return (
     <SafeAreaProvider>
       <StatusBar style={isDark ? 'light' : 'dark'} />
@@ -98,13 +129,26 @@ export default function RootLayout() {
       >
         <Stack.Screen name="index" options={{ headerShown: false }} />
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        {/* A2: explicit human titles so headers never show raw route paths.
+            Titles live in ROUTE_TITLES (single source of truth, regression-
+            tested in src/__tests__/routeTitles.unit.test.ts). */}
         <Stack.Screen
           name="workout/session"
           options={{
             headerShown: true,
-            headerTitle: 'Workout',
+            title: ROUTE_TITLES['workout/session'],
             presentation: 'fullScreenModal',
           }}
+        />
+        <Stack.Screen name="workout/loadout" options={{ title: ROUTE_TITLES['workout/loadout'] }} />
+        <Stack.Screen name="workout/summary" options={{ title: ROUTE_TITLES['workout/summary'] }} />
+        <Stack.Screen
+          name="workout/template/[id]"
+          options={{ title: ROUTE_TITLES['workout/template/[id]'] }}
+        />
+        <Stack.Screen
+          name="workout/template-edit/[id]"
+          options={{ title: ROUTE_TITLES['workout/template-edit/[id]'] }}
         />
       </Stack>
     </SafeAreaProvider>
