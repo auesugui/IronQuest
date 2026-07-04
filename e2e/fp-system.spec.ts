@@ -23,7 +23,7 @@ async function seedState(page: Page, overrides: Record<string, unknown> = {}) {
     pet: {
       id: 'test-pet-123',
       name: 'Test Pet',
-      type: 'ignis',
+      type: 'ferro',
       hunger: 100,
       lastFedAt: new Date().toISOString(),
       stats: { power: 10, guard: 10, speed: 10, vigor: 10, focus: 10, spirit: 5 },

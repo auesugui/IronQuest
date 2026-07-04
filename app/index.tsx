@@ -1,26 +1,24 @@
 // =============================================================================
-// IronQuest Splash/Index Screen
+// IronQuest Splash/Index Screen — first-run gating
 // =============================================================================
+// Phase 2 (issue #33): route to the onboarding wizard when the pet has not been
+// initialized yet, otherwise into the main tab navigator.
+//
+// The root layout (app/_layout.tsx) gates all rendering behind a hydration flag,
+// so by the time this screen renders, the pet store has been hydrated from
+// AsyncStorage and `selectIsPetInitialized` reflects persisted state. That also
+// keeps static web rendering in sync — the redirect only fires post-hydration.
 
 import { Redirect } from 'expo-router';
-import { StyleSheet } from 'react-native';
 
-import { usePlayerStore } from '@/stores';
-import { colors } from '@/theme';
+import { selectIsPetInitialized, usePetStore } from '@/stores';
 
 export default function IndexScreen() {
-  const hydrated = usePlayerStore((state) => state.fp.generic !== undefined);
+  const isPetInitialized = usePetStore(selectIsPetInitialized);
 
-  // For now, just redirect to tabs
-  // In the future, this could show a splash screen while hydrating
+  if (!isPetInitialized) {
+    return <Redirect href="/onboarding/type" />;
+  }
+
   return <Redirect href="/(tabs)" />;
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: colors.background.primary,
-  },
-});

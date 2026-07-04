@@ -39,35 +39,27 @@ export interface PetShapeGenerator {
 // Constants
 // =============================================================================
 
-// Pet type base colors
+// Pet type base colors — 3-type taxonomy (issue #33).
+// Aligned with theme `colors.types` and docs/04-pet-system/pet-types.md:
+//   Ferro → chrome/metallic · Terra → forest/earth · Flux → neon/electric
 export const PET_TYPE_COLORS: Record<
   PetType,
   { primary: string; secondary: string; glow: string }
 > = {
-  ignis: {
-    primary: '#F97316', // Orange flame
-    secondary: '#FBBF24', // Gold
-    glow: '#FEF3C7', // Light glow
+  ferro: {
+    primary: '#94A3B8', // Chrome/metallic (theme colors.types.ferro)
+    secondary: '#64748B', // Darker steel
+    glow: '#CBD5E1', // Light chrome glow
   },
   terra: {
-    primary: '#22C55E', // Forest green
+    primary: '#22C55E', // Forest/earth (theme colors.types.terra)
     secondary: '#16A34A', // Darker green
     glow: '#86EFAC', // Light green glow
   },
-  aqua: {
-    primary: '#3B82F6', // Steel blue
-    secondary: '#1D4ED8', // Darker blue
-    glow: '#93C5FD', // Light blue glow
-  },
-  ventus: {
-    primary: '#06B6D4', // Cyan
-    secondary: '#0891B2', // Teal
-    glow: '#A5F3FC', // Light cyan glow
-  },
-  umbra: {
-    primary: '#6366F1', // Indigo
-    secondary: '#4F46E5', // Darker indigo
-    glow: '#A5B4FC', // Light indigo glow
+  flux: {
+    primary: '#A855F7', // Neon/electric (theme colors.types.flux)
+    secondary: '#7E22CE', // Darker violet
+    glow: '#D8B4FE', // Light neon glow
   },
 };
 
