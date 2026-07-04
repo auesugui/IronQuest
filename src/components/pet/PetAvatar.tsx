@@ -4,6 +4,7 @@
 // Main pet rendering component using react-native-svg
 // Displays stat-driven geometric pet with idle animations
 
+import type { PetType } from '@/types';
 import { useEffect, useMemo } from 'react';
 import { StyleSheet, View } from 'react-native';
 import Animated, {
@@ -22,7 +23,9 @@ import { EVOLUTION_MULTIPLIERS, PetShapeGenerator } from './PetShapes';
 // Type Definitions
 // =============================================================================
 
-export type PetType = 'ignis' | 'terra' | 'aqua' | 'ventus' | 'umbra';
+// Re-export so existing `import { PetType } from '@/components/pet'` callers
+// keep working, while @/types remains the single source of truth (issue #33).
+export type { PetType };
 
 export type EvolutionStage = 1 | 2 | 3 | 4;
 
