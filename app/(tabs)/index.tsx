@@ -179,7 +179,12 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background.secondary,
     borderRadius: radius.md,
     padding: spacing[3],
-    width: '47%',
+    // 47% basis forces 2-per-row wrap; flexGrow fills the leftover gap so the
+    // right edge aligns exactly with the full-width cards above/below.
+    // (Previously `width: '47%'` left an ~8px shortfall on the right.)
+    flexBasis: '47%',
+    flexGrow: 1,
+    flexShrink: 0,
     alignItems: 'center',
   },
   statValue: {
