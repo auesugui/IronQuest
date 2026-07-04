@@ -331,6 +331,36 @@ fi
 echo "  Status: $STATUS"
 echo ""
 
+# --- Sync with base branch (prevent stale-branch regressions) ----------------
+# The agent's branch was cut from $BASE_BRANCH at tick start. If main advanced
+# during the tick (concurrent PRs merged), this branch is now stale — and a
+# squash-merge of a stale branch silently reverts main's recent advances,
+# because the agent's commit captured file states from before main moved.
+# Precedent: PR #36 would have reverted PR #34 (BASE_BRANCH fix) and PR #35
+# (Quick Stats fix) on squash-merge; caught manually before merge. This sync
+# makes staleness loud at tick time instead of post-merge.
+echo "=== Syncing with origin/$BASE_BRANCH ==="
+git -C "$WORKTREE" fetch origin "$BASE_BRANCH" --quiet
+if ! git -C "$WORKTREE" merge "origin/$BASE_BRANCH" --no-edit --quiet; then
+  echo "" >&2
+  echo "⚠️  WARNING: merge conflict syncing with origin/$BASE_BRANCH." >&2
+  echo "   The agent's branch is stale relative to main. Manual resolution required." >&2
+  echo "   Conflicting files:" >&2
+  git -C "$WORKTREE" diff --name-only --diff-filter=U | sed 's/^/     /' >&2
+  echo "" >&2
+  echo "   Merge aborted. Branch NOT pushed. To resolve manually:" >&2
+  echo "     cd $WORKTREE" >&2
+  echo "     git merge origin/$BASE_BRANCH   # resolve, then commit" >&2
+  echo "     $0 will need to be re-run from the push step, or push manually:" >&2
+  echo "     git -C $WORKTREE push -u origin $BRANCH" >&2
+  git -C "$WORKTREE" merge --abort
+  # Exit nonzero so the on_abort trap fires with recovery state. Leave the
+  # worktree + branch in place so the conflict can be investigated.
+  exit 1
+fi
+echo "  Synced with origin/$BASE_BRANCH (no conflicts)"
+echo ""
+
 # --- Push and open PR -------------------------------------------------------
 echo "=== Pushing branch ==="
 git -C "$WORKTREE" push -u origin "$BRANCH"
