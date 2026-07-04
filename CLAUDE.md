@@ -36,6 +36,28 @@ The INDEX.md file contains:
 | **Local Persistence** | AsyncStorage (MMKV removed for Expo Go compatibility) |
 | **Backend** | Supabase (Phase 3) |
 | **Notifications** | Expo Notifications |
+| **AI Asset Gen** | Higgsfield MCP (Phase 2+ — see usage policy below) |
+
+---
+
+## AI Asset Generation (Higgsfield)
+
+Pet art and other AI-generated assets are produced via Higgsfield MCP (`mcp.higgsfield.ai/mcp`, user scope). Plan: **Plus, 1,200 credits/month granted**.
+
+**Usage policy (set 2026-07-04):**
+
+| Guardrail | Value |
+|-----------|-------|
+| Monthly hard ceiling | **400 credits** (33% of grant — leaves 800 buffer) |
+| Per-batch approval | Any single op >10 credits needs explicit user OK |
+| Video / 3D rule | Always preflight (`get_cost: true`) + explicit approval |
+| Default | Preflight every generation before committing |
+
+**Cost reference:** Nano Banana Pro (characters) = 2 cr/image · GPT Image 2 (text/design) = 0.5 cr/image at low-Q default · Seedance 2.0 (video) = 22.5 cr/5s clip.
+
+**Phase 2 estimated need:** ~120-220 credits (item 9 avatar art is the bulk at ~72).
+
+**Scope rule:** Agent ticks do NOT generate Higgsfield assets as part of routine code work. Image generation is pair-work for the avatar identity pass (item 9), not feature work. If an issue seems to require generated assets, flag it in `## Findings (out of scope)` instead of generating.
 
 ---
 

@@ -248,3 +248,4 @@ Persistence: manual `persistState` helpers → AsyncStorage. **No MMKV.**
 4. **Type safety matters.** Game state, FP math, and battle formulas must all be typed end-to-end.
 5. **Single source of truth for tuneable values.** `src/config/fp-values.ts`.
 6. **Read `docs/09-ux-design/ux-spec.md` before any UI work.** Animation timing, haptic patterns, color language, and anti-patterns are defined there.
+7. **Higgsfield usage is gated.** AI asset generation (images/video/3D) via Higgsfield MCP has a 400 credit/month ceiling + per-batch approval rules (see `CLAUDE.md` → "AI Asset Generation"). Agent ticks do NOT generate Higgsfield assets as part of routine code work — image generation is pair work for the avatar identity pass (item 9), not feature work. If an issue seems to require generated assets, flag it in `## Findings (out of scope)` instead of generating.
