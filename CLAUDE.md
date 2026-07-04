@@ -1,6 +1,6 @@
 # IronQuest - Project Instructions
 
-> **Version:** 1.1 | **Status:** Phase 1 Implementation (in progress) | **Updated:** July 2026
+> **Version:** 1.2 | **Status:** Phase 1 shipped July 2026; Phase 2 (Pet Attachment) scoping | **Updated:** July 2026
 
 ---
 
@@ -36,6 +36,28 @@ The INDEX.md file contains:
 | **Local Persistence** | AsyncStorage (MMKV removed for Expo Go compatibility) |
 | **Backend** | Supabase (Phase 3) |
 | **Notifications** | Expo Notifications |
+| **AI Asset Gen** | Higgsfield MCP (Phase 2+ — see usage policy below) |
+
+---
+
+## AI Asset Generation (Higgsfield)
+
+Pet art and other AI-generated assets are produced via Higgsfield MCP (`mcp.higgsfield.ai/mcp`, user scope). Plan: **Plus, 1,200 credits/month granted**.
+
+**Usage policy (set 2026-07-04):**
+
+| Guardrail | Value |
+|-----------|-------|
+| Monthly hard ceiling | **400 credits** (33% of grant — leaves 800 buffer) |
+| Per-batch approval | Any single op >10 credits needs explicit user OK |
+| Video / 3D rule | Always preflight (`get_cost: true`) + explicit approval |
+| Default | Preflight every generation before committing |
+
+**Cost reference:** Nano Banana Pro (characters) = 2 cr/image · GPT Image 2 (text/design) = 0.5 cr/image at low-Q default · Seedance 2.0 (video) = 22.5 cr/5s clip.
+
+**Phase 2 estimated need:** ~120-220 credits (item 9 avatar art is the bulk at ~72).
+
+**Scope rule:** Agent ticks do NOT generate Higgsfield assets as part of routine code work. Image generation is pair-work for the avatar identity pass (item 9), not feature work. If an issue seems to require generated assets, flag it in `## Findings (out of scope)` instead of generating.
 
 ---
 
@@ -51,6 +73,7 @@ These principles must be upheld in all implementations:
 | **Rest Time ≠ FP** | Rest and pause time have zero impact on FP calculations |
 | **Spirit = Streak Only** | Spirit FP earned only through streak system — no exercise or cardio generates it |
 | **No Punishment for Absence** | Pet never dies or loses stats permanently. Vacation mode freezes decay |
+| **Hybrid Pet Rendering** | Base art = 12 AI-generated sprites (3 types × 4 stages via Higgsfield). Stats drive procedural overlays (tint/glow/scale/particles), not base geometry. See ADR-0006 |
 | **Self-Contained** | No integration with external workout apps. Owns the full data pipeline |
 
 ---
@@ -59,10 +82,12 @@ These principles must be upheld in all implementations:
 
 | Phase | Scope | Focus |
 |-------|-------|-------|
-| **Phase 1** | Tracker + Pet | Workout logging, FP engine, pet care, SVG renderer, evolution stages 1-2 |
-| **Phase 2** | Battle Tower | Auto-battle engine, tower generation, ability system, evolution stages 3-4 |
-| **Phase 3** | Polish + Social | Supabase backend, cloud sync, leaderboards, push notifications, share cards |
+| **Phase 1** ✅ | Tracker + Pet | Workout logging, FP engine, pet care, SVG renderer, evolution stages 1-2 _(shipped July 2026)_ |
+| **Phase 2** | Pet Attachment | Onboarding flow, pet type migration (5→3 Ferro/Flux/Terra), avatar identity pass, celebration layer, pet-care depth, typed-FP recalibration, share cards, kg support |
+| **Phase 3** | Battle Tower + Polish | Auto-battle engine, tower generation, ability system, evolution stages 3-4, Supabase, leaderboards, push notifications |
 | **Phase 4** | Expansion | Multiple pets, PvP, custom builders, health integrations, seasonal events |
+
+> **Phase re-sequencing note (July 2026):** Original docs called Phase 2 = Battle Tower. The 2026-07 audit (`AUDIT-AND-ROADMAP-2026-07.md`) re-sequenced: pet attachment now precedes the Tower — *"Don't build the Tower on an exploitable economy and an unloved pet."* Economy integrity shipped in Phase 1; this phase ships the pet attachment the differentiator depends on.
 
 See [`docs/07-technical/architecture-and-roadmap.md`](docs/07-technical/architecture-and-roadmap.md) for detailed phase requirements.
 

@@ -22,7 +22,7 @@ async function seedState(page: any, overrides: any = {}) {
     pet: {
       id: 'test-pet-123',
       name: 'Test Pet',
-      type: 'ignis',
+      type: 'ferro',
       hunger: 100,
       lastFedAt: new Date().toISOString(),
       stats: { power: 10, guard: 10, speed: 10, vigor: 10, focus: 10, spirit: 5 },
@@ -68,7 +68,7 @@ test.describe('Pet Care - Display', () => {
     await expect(page.getByText('Test Pet')).toBeVisible({ timeout: 10000 });
 
     // Should show pet type
-    await expect(page.getByText('ignis')).toBeVisible();
+    await expect(page.getByText('ferro')).toBeVisible();
   });
 
   test('should display evolution stage', async ({ page }) => {

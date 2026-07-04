@@ -186,6 +186,22 @@ Reference triangle:
 Ferro → Flux → Terra → Ferro (cyclic) · advantage 1.3x dealt / 0.8x taken
 ```
 
+### Avatar Rendering Architecture — RESOLVED 2026-07-04 (Option C: Hybrid)
+
+**Decision:** AI-generated base art + procedural overlays (ADR-0006 in `~/.claude/context/decisions/`). 12 base illustrations (3 types × 4 stages) via Higgsfield MCP, used as fixed sprites. Procedural overlays (tint, glow, scale, particles) driven by stats in real time via Reanimated.
+
+Replaces the Phase 1 procedural-only approach (`PetShapes.ts`) for the BASE layer. `PetShapes.ts` may still back the overlay/particle system — open for item 9 to determine.
+
+**What this means for code work:**
+- Stats no longer drive base geometry (spike count, body shape). They drive overlays: tint intensity, glow opacity, scale pulse, particle density.
+- Evolution is a discrete sprite swap (with Reanimated morph animation), not a continuous geometry morph.
+- Tap reactions, mood, blink animation all run as overlays/procedural layers on top of the fixed base sprite.
+- Tier swaps within a stage (e.g. Power tier 1/2/3) are optional for conveying progression; overlay intensity is the primary signal.
+
+**Walked back from audit §5.3:** "When +1 Power is tapped, animate only the spikes growing" — spikes are now baked into the base PNG; can't grow continuously. Acceptable per ADR-0006 (Pokémon-style discrete swaps retain users).
+
+**Higgsfield gating:** Agent ticks do NOT generate base art. The 12-illustration set is pair work for item 9, generated interactively with art-direction iteration. See `CLAUDE.md` → "AI Asset Generation" and Operational Note #7 below.
+
 ### Stat Cost Scaling
 - Tier 1 (1–10): 5 FP per point
 - Tier 2 (11–25): 8 FP per point
@@ -248,3 +264,4 @@ Persistence: manual `persistState` helpers → AsyncStorage. **No MMKV.**
 4. **Type safety matters.** Game state, FP math, and battle formulas must all be typed end-to-end.
 5. **Single source of truth for tuneable values.** `src/config/fp-values.ts`.
 6. **Read `docs/09-ux-design/ux-spec.md` before any UI work.** Animation timing, haptic patterns, color language, and anti-patterns are defined there.
+7. **Higgsfield usage is gated.** AI asset generation (images/video/3D) via Higgsfield MCP has a 400 credit/month ceiling + per-batch approval rules (see `CLAUDE.md` → "AI Asset Generation"). Agent ticks do NOT generate Higgsfield assets as part of routine code work — image generation is pair work for the avatar identity pass (item 9), not feature work. If an issue seems to require generated assets, flag it in `## Findings (out of scope)` instead of generating.

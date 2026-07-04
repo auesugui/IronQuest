@@ -21,7 +21,7 @@ set -euo pipefail
 REPO="auesugui/IronQuest"
 WORKTREE_BASE=".claude/worktrees"
 RUNS_DIR=".claude/agents/runs"
-BASE_BRANCH="${BASE_BRANCH:-feature/phase1-core-implementation}"
+BASE_BRANCH="${BASE_BRANCH:-main}"
 MAX_BUDGET_USD="${MAX_BUDGET_USD:-20}"
 
 # --- Args -------------------------------------------------------------------
@@ -113,6 +113,18 @@ trap on_abort EXIT
 git worktree add -b "$BRANCH" "$WORKTREE" "$BASE_BRANCH"
 echo "  Branch: $BRANCH"
 echo "  Path:   $WORKTREE"
+
+# Symlink the root node_modules into the worktree. Metro (Expo dev server)
+# can't resolve modules across worktree boundaries, and a fresh `npm install`
+# per tick is slow + bandwidth-heavy. The root install is authoritative
+# (worktree shares the repo's package.json via the worktree ref), so a
+# symlink is safe and lets CDT browser verification work out of the box.
+# Precedent: issue #33's tick hit "Unable to resolve ./node_modules/expo-router"
+# and had to symlink manually mid-run.
+if [[ -d "$REPO_ROOT/node_modules" && ! -e "$WORKTREE/node_modules" ]]; then
+  ln -s "$REPO_ROOT/node_modules" "$WORKTREE/node_modules"
+  echo "  Linked node_modules → $REPO_ROOT/node_modules"
+fi
 echo ""
 
 # --- Build prompt -----------------------------------------------------------
