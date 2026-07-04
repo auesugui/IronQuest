@@ -51,7 +51,7 @@ Shifted from PWA-first (v1) to React Native via Expo. Reasons:
 
 ## Development Roadmap
 
-### Phase 1: Tracker + Pet (Weeks 1–5)
+### Phase 1: Tracker + Pet ✅ (Weeks 1–5, shipped July 2026)
 
 **Goal:** A workout tracker you actually use every session + a pet that responds to training.
 
@@ -63,31 +63,49 @@ Shifted from PWA-first (v1) to React Native via Expo. Reasons:
 - Stat allocation UI: spend typed FP, see visual changes live
 - Pet SVG renderer: stat-driven geometric creature
 - Evolution stages 1–2 (Shard, Form) with morph animation
-- Local persistence (AsyncStorage + MMKV)
+- Local persistence (AsyncStorage)
 - Pre-loaded 6-day PPL program
 
 > **EXIT CRITERIA:** Use the app for every workout for 2 consecutive weeks. Tracker is faster than current method. Pet feels worth caring about.
+>
+> **Status:** Shipped July 2026 via PRs #2–#30. Audit (full due-diligence pass) verified the tracker core works end-to-end (3-second logging rule holds, FP math matches spec, PR detection fires correctly). Pet renderer works technically but did not yet meet the "feels worth caring about" bar — that's Phase 2's job.
 
-### Phase 2: The Tower (Weeks 6–10)
+### Phase 2: Pet Attachment (Weeks 6–10)
 
-**Goal:** A battle system that makes you want to train harder.
+**Goal:** Make the pet worth caring about. The product's differentiator doesn't yet exist emotionally — this phase ships it.
 
-- Auto-battle engine (stat comparison, damage, turns, abilities)
-- Tower floor generation (procedural enemies scaled to floor)
-- Battle animation system
-- Ability system (4 slots via evolution)
-- Tower attempt economy (1/workout, max 7)
-- Boss floor mechanics (every 10th)
-- Tower rewards (FP + cosmetics)
+Sequencing principle (from `AUDIT-AND-ROADMAP-2026-07.md`): **integrity → attachment → depth.** Phase 1 fixed integrity; this phase ships attachment; Phase 3 adds depth (Tower).
+
+Scope (audit §4 items 8–12; Q1 type-system decision resolved 2026-07-03):
+
+- **Pet type migration (5 → 3):** Replace `ignis/terra/aqua/ventus/umbra` in `src/types/index.ts` and `PetAvatar.tsx` with `ferro/flux/terra` (cyclic triangle, 1.3× advantage / 0.8× resistance). Tower copy already assumes 3 types.
+- **Onboarding flow:** 3 screens — choose type, name pet, pick starting template. `petStore.initializePet` exists; UI only. App must route around the pet-uninitialized state (`app/index.tsx` currently redirects to tabs unconditionally).
+- **Avatar identity pass (Option C: Hybrid — ADR-0006):** 12 AI-generated base illustrations (3 types × 4 stages) via Higgsfield MCP as fixed sprites — per-type silhouette (Ferro compact hex, Terra broad trapezoid, Flux tall teardrop) with expressive faces (audit §5.2: eye system, blink, gaze-follow). Procedural overlays on top, driven by stats in real time via Reanimated: tint (Power→warm red), glow (Spirit aura), scale pulse (upgrade moment), particles (streak fire, PR sparkle). Stats no longer drive base geometry — discrete tier swaps within a stage convey progression. Walks back audit §5.3 ("spikes grow on upgrade") in favor of bounded art direction. See Higgsfield usage policy in `CLAUDE.md` (400 cr/month ceiling, ~72 credits estimated for the 12-illustration set).
+- **Celebration layer:** Evolution morph (Reanimated scale+morph+flash — Reanimated already in use by `PetAvatar`), PR gold flash in-session, summary screen upgraded to spec (sequential FP lines, typed radar — `RadarChart.tsx` exists — streak line, "Visit the Den" CTA).
+- **Pet-care depth (MLV):** Mood derived from hunger + recency (typed in `src/types`), tap reaction animation, 2 food tiers + auto-feed toggle (Decision A1), vacation mode toggle (Decision A5 — small: freeze `calculateHungerDecayAmount`).
+- **Typed-FP recalibration (audit C5):** Re-tag exercise DB so compounds emit primary mover dominantly (e.g. bench = power 0.8 / focus 0.2 via weighted tags rather than equal split). Add a test asserting no single type exceeds ~35% across all built-in templates.
+- **kg support (decision 2026-07-04):** App is currently lb-only (plate math 45/65/95/135/185/225). Affects weight memory (`weightHistoryStore`), plate math, baselines, PR detection. UX open: lb/kg toggle in settings vs. per-user onboarding preference vs. per-exercise.
+- **Share cards (promoted from Phase 3, decision 2026-07-04):** Pet image with stats + tower floor — cheapest organic acquisition mechanic. Renders the pet to a shareable static image alongside the avatar identity pass so the rendering work serves double duty.
+
+> **EXIT CRITERIA:** After a real workout you want to open the Den; a friend seeing your pet asks what it means.
+
+### Phase 3: Battle Tower + Polish (Weeks 11–18)
+
+**Goal:** A battle system that makes you want to train harder, plus the polish layer that retains.
+
+**Tower (audit §4 items 13–16):**
+
+- Auto-battle engine as a pure module in `src/engine/battle/` with the same test discipline as the FP engine (stat comparison, type triangle, turn order, HP from Vigor — all specified in [`docs/05-battle-tower/tower.md`](../05-battle-tower/tower.md))
+- Tower progression: floor generation scaled to floor number, attempts earned per claimed workout (wire to the now-real WorkoutLog), boss floors every 10th, floor rewards
+- Battle presentation v1: text-log + animated stat bars + pet bounce/flash (cheap; full animation system waits for engagement validation)
+- Achievements v1 (8–10 badges: first PR, 7-day streak, 100 sets, first evolution…)
 - Evolution stages 3–4 (Prime, Apex)
-- Achievement system (20+ badges)
 - Pet training mini-interactions
 
-### Phase 3: Polish + Social (Weeks 11–14)
+**Polish + Social (original Phase 3 content):**
 
 - Supabase: auth, cloud sync, cross-device data
 - Leaderboard: tower floors, total FP, longest streaks
-- Share card: shareable pet image with stats + tower floor
 - Push notifications: streak reminders, pet hunger, weekly summary
 - Sound design: battle effects, evolution fanfare, UI feedback
 - Workout history charts: volume, stats, FP trends
