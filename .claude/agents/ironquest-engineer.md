@@ -186,6 +186,22 @@ Reference triangle:
 Ferro → Flux → Terra → Ferro (cyclic) · advantage 1.3x dealt / 0.8x taken
 ```
 
+### Avatar Rendering Architecture — RESOLVED 2026-07-04 (Option C: Hybrid)
+
+**Decision:** AI-generated base art + procedural overlays (ADR-0006 in `~/.claude/context/decisions/`). 12 base illustrations (3 types × 4 stages) via Higgsfield MCP, used as fixed sprites. Procedural overlays (tint, glow, scale, particles) driven by stats in real time via Reanimated.
+
+Replaces the Phase 1 procedural-only approach (`PetShapes.ts`) for the BASE layer. `PetShapes.ts` may still back the overlay/particle system — open for item 9 to determine.
+
+**What this means for code work:**
+- Stats no longer drive base geometry (spike count, body shape). They drive overlays: tint intensity, glow opacity, scale pulse, particle density.
+- Evolution is a discrete sprite swap (with Reanimated morph animation), not a continuous geometry morph.
+- Tap reactions, mood, blink animation all run as overlays/procedural layers on top of the fixed base sprite.
+- Tier swaps within a stage (e.g. Power tier 1/2/3) are optional for conveying progression; overlay intensity is the primary signal.
+
+**Walked back from audit §5.3:** "When +1 Power is tapped, animate only the spikes growing" — spikes are now baked into the base PNG; can't grow continuously. Acceptable per ADR-0006 (Pokémon-style discrete swaps retain users).
+
+**Higgsfield gating:** Agent ticks do NOT generate base art. The 12-illustration set is pair work for item 9, generated interactively with art-direction iteration. See `CLAUDE.md` → "AI Asset Generation" and Operational Note #7 below.
+
 ### Stat Cost Scaling
 - Tier 1 (1–10): 5 FP per point
 - Tier 2 (11–25): 8 FP per point

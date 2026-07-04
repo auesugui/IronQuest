@@ -73,6 +73,7 @@ These principles must be upheld in all implementations:
 | **Rest Time ≠ FP** | Rest and pause time have zero impact on FP calculations |
 | **Spirit = Streak Only** | Spirit FP earned only through streak system — no exercise or cardio generates it |
 | **No Punishment for Absence** | Pet never dies or loses stats permanently. Vacation mode freezes decay |
+| **Hybrid Pet Rendering** | Base art = 12 AI-generated sprites (3 types × 4 stages via Higgsfield). Stats drive procedural overlays (tint/glow/scale/particles), not base geometry. See ADR-0006 |
 | **Self-Contained** | No integration with external workout apps. Owns the full data pipeline |
 
 ---
