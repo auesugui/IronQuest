@@ -223,6 +223,18 @@ if [[ $CLAUDE_EXIT -ne 0 ]]; then
   echo "  Continuing to log assembly + commit check; raw stderr: $RAW_STREAM"
 fi
 
+# FM2 guard: surface a missing summary file IMMEDIATELY in stdout. Downstream
+# code already falls back to verification-unknown + the gate blocks merge, but
+# the orchestrator scanning tick logs needs a loud signal here — not a quiet
+# "Status: missing" buried 50 lines later. Precedent: PR #23 shipped with no
+# summary file; gate caught it, orchestrator didn't notice until manual review.
+if [[ ! -s "$SUMMARY_FILE" ]]; then
+  echo "" >&2
+  echo "⚠️  WARNING: agent did not write summary file at $SUMMARY_FILE" >&2
+  echo "   Verification status will default to 'unknown'; PR will be gated." >&2
+  echo "   Investigate before proceeding to merge." >&2
+fi
+
 # Build a human-readable log from the JSON. If JSON parsing fails (claude
 # crashed, ran over budget, etc.), fall back to the raw stream so the log
 # still has something for debugging.
