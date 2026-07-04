@@ -1,6 +1,6 @@
 # IronQuest - Project Instructions
 
-> **Version:** 1.1 | **Status:** Phase 1 Implementation (in progress) | **Updated:** July 2026
+> **Version:** 1.2 | **Status:** Phase 1 shipped July 2026; Phase 2 (Pet Attachment) scoping | **Updated:** July 2026
 
 ---
 
@@ -59,10 +59,12 @@ These principles must be upheld in all implementations:
 
 | Phase | Scope | Focus |
 |-------|-------|-------|
-| **Phase 1** | Tracker + Pet | Workout logging, FP engine, pet care, SVG renderer, evolution stages 1-2 |
-| **Phase 2** | Battle Tower | Auto-battle engine, tower generation, ability system, evolution stages 3-4 |
-| **Phase 3** | Polish + Social | Supabase backend, cloud sync, leaderboards, push notifications, share cards |
+| **Phase 1** ✅ | Tracker + Pet | Workout logging, FP engine, pet care, SVG renderer, evolution stages 1-2 _(shipped July 2026)_ |
+| **Phase 2** | Pet Attachment | Onboarding flow, pet type migration (5→3 Ferro/Flux/Terra), avatar identity pass, celebration layer, pet-care depth, typed-FP recalibration, share cards, kg support |
+| **Phase 3** | Battle Tower + Polish | Auto-battle engine, tower generation, ability system, evolution stages 3-4, Supabase, leaderboards, push notifications |
 | **Phase 4** | Expansion | Multiple pets, PvP, custom builders, health integrations, seasonal events |
+
+> **Phase re-sequencing note (July 2026):** Original docs called Phase 2 = Battle Tower. The 2026-07 audit (`AUDIT-AND-ROADMAP-2026-07.md`) re-sequenced: pet attachment now precedes the Tower — *"Don't build the Tower on an exploitable economy and an unloved pet."* Economy integrity shipped in Phase 1; this phase ships the pet attachment the differentiator depends on.
 
 See [`docs/07-technical/architecture-and-roadmap.md`](docs/07-technical/architecture-and-roadmap.md) for detailed phase requirements.
 
