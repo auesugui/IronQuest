@@ -21,7 +21,7 @@ set -euo pipefail
 REPO="auesugui/IronQuest"
 WORKTREE_BASE=".claude/worktrees"
 RUNS_DIR=".claude/agents/runs"
-BASE_BRANCH="${BASE_BRANCH:-feature/phase1-core-implementation}"
+BASE_BRANCH="${BASE_BRANCH:-main}"
 MAX_BUDGET_USD="${MAX_BUDGET_USD:-20}"
 
 # --- Args -------------------------------------------------------------------
