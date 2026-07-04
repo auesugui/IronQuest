@@ -42,18 +42,18 @@ describe('Pet Store', () => {
     it('should create a pet with type and name', () => {
       const { initializePet } = usePetStore.getState();
 
-      initializePet('ignis', 'Flamey');
+      initializePet('ferro', 'Flamey');
 
       const state = usePetStore.getState();
       expect(state.id).toBeTruthy();
       expect(state.name).toBe('Flamey');
-      expect(state.type).toBe('ignis');
+      expect(state.type).toBe('ferro');
     });
 
     it('should initialize stats to 0', () => {
       const { initializePet } = usePetStore.getState();
 
-      initializePet('ignis', 'Flamey');
+      initializePet('ferro', 'Flamey');
 
       const { stats } = usePetStore.getState();
       expect(stats.power).toBe(0);
@@ -67,7 +67,7 @@ describe('Pet Store', () => {
     it('should set hunger to 100%', () => {
       const { initializePet } = usePetStore.getState();
 
-      initializePet('ignis', 'Flamey');
+      initializePet('ferro', 'Flamey');
 
       expect(usePetStore.getState().hunger).toBe(100);
     });
@@ -75,7 +75,7 @@ describe('Pet Store', () => {
     it('should set evolution stage to 1', () => {
       const { initializePet } = usePetStore.getState();
 
-      initializePet('ignis', 'Flamey');
+      initializePet('ferro', 'Flamey');
 
       expect(usePetStore.getState().evolutionStage).toBe(1);
     });
@@ -83,13 +83,16 @@ describe('Pet Store', () => {
     it('should persist pet to storage', () => {
       const { initializePet } = usePetStore.getState();
 
-      initializePet('ignis', 'Flamey');
+      initializePet('ferro', 'Flamey');
 
       expect(appStorage.setJSON).toHaveBeenCalled();
     });
 
     it('should support all pet types', () => {
-      const petTypes = ['ignis', 'terra', 'aqua', 'ventus', 'umbra', 'lumen'];
+      // Phase 2 (issue #33): the taxonomy is the 3-type Ferro/Flux/Terra
+      // triangle. (The old 5-type list also included phantom entries that were
+      // never real types — this now mirrors the real PetType union.)
+      const petTypes = ['ferro', 'flux', 'terra'];
 
       petTypes.forEach((type) => {
         usePetStore.getState().reset();
@@ -108,7 +111,7 @@ describe('Pet Store', () => {
   describe('feedPet', () => {
     beforeEach(() => {
       const { initializePet } = usePetStore.getState();
-      initializePet('ignis', 'Flamey');
+      initializePet('ferro', 'Flamey');
     });
 
     it('should restore hunger to 100%', () => {
@@ -149,7 +152,7 @@ describe('Pet Store', () => {
   describe('calculateHungerDecay', () => {
     beforeEach(() => {
       const { initializePet } = usePetStore.getState();
-      initializePet('ignis', 'Flamey');
+      initializePet('ferro', 'Flamey');
     });
 
     it('should decay 5 points per hour', () => {
@@ -206,7 +209,7 @@ describe('Pet Store', () => {
   describe('upgradeStat', () => {
     beforeEach(() => {
       const { initializePet } = usePetStore.getState();
-      initializePet('ignis', 'Flamey');
+      initializePet('ferro', 'Flamey');
     });
 
     it('should increase stat by specified amount', () => {
@@ -282,7 +285,7 @@ describe('Pet Store', () => {
   describe('applyFPToStats', () => {
     beforeEach(() => {
       const { initializePet } = usePetStore.getState();
-      initializePet('ignis', 'Flamey');
+      initializePet('ferro', 'Flamey');
     });
 
     it('should apply multiple stat increases at once', () => {
@@ -313,7 +316,7 @@ describe('Pet Store', () => {
   describe('Evolution', () => {
     beforeEach(() => {
       const { initializePet } = usePetStore.getState();
-      initializePet('ignis', 'Flamey');
+      initializePet('ferro', 'Flamey');
     });
 
     describe('addFP', () => {
@@ -420,7 +423,7 @@ describe('Pet Store', () => {
         const mockPet = {
           id: 'test-pet-123',
           name: 'Flamey',
-          type: 'ignis',
+          type: 'ferro',
           hunger: 80,
           lastFedAt: new Date().toISOString(),
           stats: {
@@ -453,7 +456,7 @@ describe('Pet Store', () => {
         const mockPet = {
           // No id field
           name: 'Flamey',
-          type: 'ignis',
+          type: 'ferro',
           hunger: 80,
           stats: { power: 5, guard: 5, speed: 5, vigor: 5, focus: 5, spirit: 0 },
           evolutionStage: 1,
@@ -506,9 +509,33 @@ describe('Pet Store', () => {
 
         const state = usePetStore.getState();
         expect(state.name).toBe('');
-        expect(state.type).toBe('ignis');
+        expect(state.type).toBe('ferro');
         expect(state.hunger).toBe(100);
         expect(state.evolutionStage).toBe(1);
+      });
+
+      it('should coerce stale pre-Phase-2 types to "ferro" (issue #33)', async () => {
+        // A pre-Phase-2 install may have persisted a retired-type value.
+        // Passing it through unchanged would crash PetAvatar (PET_TYPE_COLORS
+        // lookup misses). hydrate must coerce ANY unrecognized value to a
+        // valid type. We use a sentinel here that is not in the 3-type set;
+        // it exercises the same coercion branch as any retired value.
+        const mockPet = {
+          id: 'stale-pet',
+          name: 'Old Timer',
+          type: 'retired-type',
+          hunger: 80,
+          stats: { power: 5, guard: 5, speed: 5, vigor: 5, focus: 5, spirit: 0 },
+          evolutionStage: 1,
+          totalFPEarned: 100,
+        };
+
+        (appStorage.getJSON as jest.Mock).mockResolvedValue(mockPet);
+
+        const { hydrate } = usePetStore.getState();
+        await hydrate();
+
+        expect(usePetStore.getState().type).toBe('ferro');
       });
     });
 
@@ -516,7 +543,7 @@ describe('Pet Store', () => {
       it('should clear all pet state', () => {
         const { initializePet, reset } = usePetStore.getState();
 
-        initializePet('ignis', 'Flamey');
+        initializePet('ferro', 'Flamey');
         reset();
 
         const state = usePetStore.getState();
@@ -542,7 +569,7 @@ describe('Pet Store', () => {
   describe('Selectors', () => {
     beforeEach(() => {
       const { initializePet } = usePetStore.getState();
-      initializePet('ignis', 'Flamey');
+      initializePet('ferro', 'Flamey');
     });
 
     describe('selectPet', () => {

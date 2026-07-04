@@ -98,7 +98,7 @@ const createInitialStats = (): PetStats => ({
 const initialState: PetState = {
   id: '',
   name: '',
-  type: 'ignis',
+  type: 'ferro',
   hunger: MAX_HUNGER,
   lastFedAt: null,
   stats: createInitialStats(),
@@ -115,6 +115,15 @@ const generateId = (): string => {
 
 // Helper to get current ISO timestamp
 const nowISO = (): string => new Date().toISOString();
+
+// The 3-type taxonomy shipped in Phase 2 (issue #33). Pre-Phase-2 persisted
+// state may still hold a stale retired-type value; passing it through would
+// crash PetAvatar (PET_TYPE_COLORS lookup misses). Coerce any unrecognized
+// value to the default 'ferro'.
+const VALID_PET_TYPES: PetType[] = ['ferro', 'flux', 'terra'];
+const coercePetType = (value: unknown): PetType => {
+  return VALID_PET_TYPES.includes(value as PetType) ? (value as PetType) : 'ferro';
+};
 
 // Helper to persist pet state
 const persistPet = async (state: PetState) => {
@@ -294,7 +303,7 @@ export const usePetStore = create<PetStore>((set, get) => ({
         set({
           id: petId,
           name: stored.name ?? '',
-          type: stored.type ?? 'ignis',
+          type: coercePetType(stored.type),
           hunger: stored.hunger ?? MAX_HUNGER,
           lastFedAt: stored.lastFedAt ?? null,
           stats: stored.stats ?? createInitialStats(),
@@ -309,7 +318,7 @@ export const usePetStore = create<PetStore>((set, get) => ({
           persistPet({
             id: petId,
             name: stored.name ?? '',
-            type: stored.type ?? 'ignis',
+            type: coercePetType(stored.type),
             hunger: stored.hunger ?? MAX_HUNGER,
             lastFedAt: stored.lastFedAt ?? null,
             stats: stored.stats ?? createInitialStats(),

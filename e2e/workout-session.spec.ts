@@ -21,7 +21,7 @@ const INITIAL_STATE = {
   pet: {
     id: 'test-pet-123',
     name: 'Test Pet',
-    type: 'ignis',
+    type: 'ferro',
     hunger: 100,
     lastFedAt: new Date().toISOString(),
     stats: { power: 5, guard: 5, speed: 5, vigor: 5, focus: 5, spirit: 0 },

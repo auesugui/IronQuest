@@ -129,6 +129,10 @@ export default function RootLayout() {
       >
         <Stack.Screen name="index" options={{ headerShown: false }} />
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        {/* Phase 2 onboarding (issue #33): chrome-free first-run wizard. */}
+        <Stack.Screen name="onboarding/type" options={{ headerShown: false }} />
+        <Stack.Screen name="onboarding/name" options={{ headerShown: false }} />
+        <Stack.Screen name="onboarding/template" options={{ headerShown: false }} />
         {/* A2: explicit human titles so headers never show raw route paths.
             Titles live in ROUTE_TITLES (single source of truth, regression-
             tested in src/__tests__/routeTitles.unit.test.ts). */}

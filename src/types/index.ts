@@ -6,7 +6,10 @@
 // Pet Types
 // -----------------------------------------------------------------------------
 
-export type PetType = 'ignis' | 'terra' | 'aqua' | 'ventus' | 'umbra';
+// Phase 2 (issue #33): migrated from the 5-type exploration set to the resolved
+// Q1 3-type taxonomy. Type triangle (cyclic): Ferro → Flux → Terra → Ferro.
+// Advantage: 1.3× damage dealt / 0.8× taken. See docs/04-pet-system/pet-types.md.
+export type PetType = 'ferro' | 'flux' | 'terra';
 
 export type StatType = 'power' | 'guard' | 'speed' | 'vigor' | 'focus' | 'spirit';
 
