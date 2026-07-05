@@ -84,11 +84,12 @@ Adrian's anchors: **Pokémon, World of Warcraft gear acquisition, Undertale.** T
 
 | Reference | What we steal | How it shows up in IronQuest |
 |---|---|---|
-| **World of Warcraft (gear)** | Progression is *worn*. Each piece of gear is a visible achievement on the character. | **Overlays = gear slots.** Each training achievement (PR, streak milestone, stat threshold) adds/changes a visible element on the pet — aura, marking, accessory, weapon-equivalent. This is richer than "tint the sprite" — it's a readable résumé. |
+| **World of Warcraft (gear + rarity)** | Progression is *worn*, and **value is color-coded** (Common white → Uncommon green → Rare blue → Epic purple → Legendary orange). The rarity tier system is the most-copied progression language in games. | **Overlays = gear slots WITH rarity tiers.** Each gear piece has a stat assignment AND a rarity color (via glow/aura, separate from the stat's fill color). A legendary Power spike reads differently from a common one — aspiration built into the visual language. |
 | **Pokémon** | Evolution as a beloved, earned milestone. Type system. Gender-neutral creature archetypes (Pikachu, Lucario — none heavily coded). | Macro progression = evolution (Stage 1→4). Type triangle (Ferro/Flux/Terra). **Gender-neutral by default** (see §10) — avoid heavy gender coding. |
 | **Undertale** | Deep personality via minimal geometry — face + timing + writing, not detail. | The face is the leverage (audit §5.2). A few shapes, animated well, beat a detailed static illustration. |
+| **Zelda (chest reveal)** | The *ceremony* of acquisition. New items aren't dropped in inventory — they're revealed: chest opens, light, music sting, item held aloft, name displayed. Time spent deliberately; acquisition becomes a *memory*. | **Milestone ceremony.** Evolution and major gear acquisitions get a full reveal moment (~3-5s), not a notification toast. Drives ticket #40 (celebration) scope. |
 
-**The synthesis:** the pet is a character whose **macro** progression is Pokémon-style evolution (stage swaps) and whose **micro** progression is WoW-gear-style accumulation (visible achievement layers between evolutions). Both encode effort. Both are readable.
+**The synthesis:** the pet is a character whose **macro** progression is Pokémon-style evolution (stage swaps), whose **micro** progression is WoW-gear-style accumulation with **rarity tiers** (visible achievement layers between evolutions), and whose **milestone moments** use Zelda-style ceremony (the acquisition is the memory). All three encode effort; all three are readable; all three give the user something to chase and remember.
 
 ---
 
@@ -123,6 +124,8 @@ Each principle traces to a settled section. Rev 2 additions in bold.
 - **Gender-neutral by default (NEW, from §10).** No heavy gender coding in the base art. Proportions, features, and expressions stay neutral. Personalization (if ever) is a future feature, not v1.
 - **Motion is mandatory (NEW, from §10).** No static pets. Breathing, idle micro-motion, tap reactions, achievement bursts — all required. A static sprite is a sticker, not a creature.
 - **Training résumé markings.** Subtle accumulation marks for streaks/milestones (audit §5.4) — one per week of ≥3 workouts, glow intensity from current streak.
+- **Rarity color system (NEW, from §6).** Gear carries a rarity tier (Common→Legendary) encoded as glow/aura color, **separate from the stat's fill color**. Two channels, both readable: stat fill = *which* stat; rarity glow = *achievement level*. Aspiration built in (users chase the orange).
+- **Acquisition ceremony (NEW, from §6).** Milestones get time spent on them — not rushed past. Tiered: **micro** (gold flash on PR), **minor** (gear materializes with sting), **major** (full evolution reveal, Zelda-style — held aloft, named, ~3-5s). The moment of earning is the memory.
 
 ---
 
@@ -163,7 +166,7 @@ Graduated to ✅ in Rev 2: persona (§2), hunger/mood dropped (§4), references 
 
 **New questions raised by those answers:**
 
-1. **Gear slot taxonomy (from §6/§8):** what are the visible "gear" layers? Candidates: aura ring (Spirit/streak), shoulder spikes (Power), chest plate (Guard), leg streamlines (Speed), forearm bands (Focus), core gem (Vigor). Need to define the slots before designing them.
+1. **Gear slot taxonomy (from §6/§8) — refined by rarity system:** gear is a **stat × rarity matrix**. Slot = which stat (6 candidates: Power spikes, Guard plate, Speed streamlines, Vigor gem, Focus crest, Spirit aura). Rarity = achievement tier (Common→Legendary via WoW color system, encoded as glow). **🔴 Confirm:** the 6 stat slots + adopt the rarity tier colors as a second visual channel?
 
 2. **Gender-neutral design constraints (from §10):** what specific art-direction rules keep the base neutral? Avoid: pronounced curves/waists, eyelash detail, certain proportions. Lean on: geometric strength, abstract creature forms (Pokémon-style). Worth pinning down concretely before Higgsfield prompts.
 
