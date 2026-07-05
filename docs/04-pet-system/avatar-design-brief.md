@@ -3,6 +3,7 @@
 > **Status:** Living doc, co-authored. Phase 2 item 9 (avatar identity pass).
 > **Maturity legend:** ✅ AFFIRMED (Adrian confirmed) · 🟡 DRAFT (my hypothesis, react to it) · 🔴 OPEN (needs Adrian's input)
 > **Origin:** Born from the 2026-07-04 design deep-dive. Supersedes the procedural-only framing of Phase 1; operationalizes ADR-0006 (hybrid rendering).
+> **Rev 2:** 2026-07-04 — Adrian answered §11 questions; sections 2/3/4/6/7/10 updated; new questions raised (see §11).
 
 ---
 
@@ -10,7 +11,7 @@
 
 This is the source of truth for the pet's **art direction and emotional intent**. Visual choices (silhouette, color, face, motion) get evaluated against the principles here — not against "looks cool." If a proposed visual serves Sections 3-5, it's in. If it doesn't, it's out, no matter how polished.
 
-Sections 3 and 4 are settled (✅). Everything else is draft (🟡) or open (🔴) — Adrian reacts, I revise. When a section stabilizes, it graduates to ✅ and becomes a hard constraint on Higgsfield prompts and overlay code.
+Sections graduate from 🟡/🔴 to ✅ as they stabilize. ✅ sections become hard constraints on Higgsfield prompts and overlay code.
 
 ---
 
@@ -22,146 +23,155 @@ The market research is clear on the niche: no shipping app makes a creature whos
 
 ---
 
-## 2. Target user 🟡
+## 2. Target user — ✅ AFFIRMED
 
-**Not a beginner needing motivation to start.** IronQuest's persona is the 4–6 day/week intermediate lifter who *already trains*. Their problem isn't initiation — it's that their meticulously-tracked data (Strong/Hevy refugees) is emotionally flat. They have a spreadsheet's worth of progress; it doesn't *feel* like anything.
+**Both** the 4–6 day/week intermediate *and* the newer lifter who needs motivation to build consistency.
 
-The pet's job is to give that data a **body** — make the invisible accumulation of work visible and self-relevant. The user's current relationship to their data is *"I have it, but it doesn't mean anything to look at."*
+This dual persona shapes the emotional register:
+- **Newer lifter:** the pet must motivate early consistency. Stage 1 can't read as "you have nothing" — it must read as *"you started, and this is the beginning of something."* The first 2–3 weeks (habit formation window) need celebration density, not austerity.
+- **Intermediate:** the pet makes meticulously-tracked data emotionally legible. Their spreadsheet finally *feels* like something. Pride in accumulated work.
 
-**🔴 Open for Adrian:** Does this persona match the user you're building for? Specifically — are you building for the intermediate who already tracks, or also for the newer lifter who needs the pet to motivate consistency? The answer changes the emotional register.
+The pet serves both by being a **mirror with a growth arc** — early encouragement curving into mature pride. The same creature reads differently as it accumulates.
 
 ---
 
 ## 3. Emotional goal — ✅ AFFIRMED
 
-**The target emotion is pride and recognition.** Not "fun." Not "delight." Not "cute companion."
+**Pride and recognition** — *"I built this. I earned this. This is a reflection of me."* The pet is a mirror reflecting accumulated effort back, made visible.
 
-The user should look at their pet and feel: *"I built this. I earned this. This is a reflection of me."* The pet is a **mirror** that reflects accumulated effort back, made visible. Every visual element should serve that recognition — when you see the pet, you see your own work staring back.
+Refined by the dual persona (§2): for newer lifters, the pride is *forward-looking* ("I'm becoming someone who trains"); for intermediates, it's *backward-looking* ("I've built this over time"). The pet serves both by making the arc visible at every stage.
 
-This is why "fun/cute" is the wrong axis: it's the casual-gamification register (Wokamon, GymPet, Habitica pets) and it's why those feel infantilizing to a serious lifter. Pride is a heavier, more durable emotion — and it's the one that survives the 6-month novelty cliff.
-
-**Care (feeding, mood) is in service of pride, not separate from it.** Tending the pet is *tending to the self* — investing surplus effort into a visible representation of yourself. Not a chore cycle.
+This is why "fun/cute" is the wrong axis — it's the casual-gamification register (Wokamon, GymPet, Habitica pets) and infantilizes. Pride is heavier and survives the 6-month novelty cliff.
 
 ---
 
-## 4. The "not a chore" principle — ✅ AFFIRMED
+## 4. The "not a chore" principle — ✅ AFFIRMED (hardened)
 
 > *"I don't want it to feel like a considerable chore — like I'm managing myself AND my avatar. But I want it to feel rewarding."* — Adrian, 2026-07-04
 
-This is a **hard constraint**, equal in weight to the Core Design Rule "No Punishment for Absence." It reshapes every mechanic:
+**Hard constraint**, equal weight to "No Punishment for Absence." Hardened in Rev 2: **hunger/mood/feeding are dropped from v1 entirely.** The pet's state changes **only from workouts** (passive progression via the FP engine). No survival mechanics, no decay, no feeding obligation.
 
 | Chore pattern (reject) | Rewarding pattern (keep) |
 |---|---|
 | Pet decays / looks pathetic if you don't log in | Pet reflects what you've *done*, never what you *owe* |
-| Feeding is an obligation (pet is starving) | Feeding is an *investment* of surplus FP into visible growth |
+| Feeding / hunger / mood maintenance | **Dropped from v1 — pet changes only from workouts** |
 | Guilt-tripping copy ("your pet missed you") | Honest mirror with no judgment tone |
-| Maintenance without payoff | Every care action has visible stat→visual impact |
-| Penalty for absence | Vacation mode freezes the mirror; absence never costs |
+| Penalty for absence | Vacation mode unnecessary (no decay to freeze) |
 
-**Implication for the visual:** the pet must never look **needy, starving, or pleading**. Its resting state is *earned composure* — confident, not demanding. Hunger/mood are honest signals of recent training, not guilt levers. A hungry pet isn't sad; it's just *underfed right now*, and the fix feels like growth, not rescue.
+**Implication for the visual:** the pet never looks needy, starving, or pleading. Its resting state is *earned composure*. There's no "hungry" or "sad" visual state to design around — only growth states.
 
-**🔴 Open for Adrian:** Does hunger/mood even belong in v1? Given "not a chore," the safest MLV might be a pet whose state changes *only* from workouts (passive), with feeding as an opt-in FP sink — not a survival mechanic. The pet-care ticket (#41) assumes mood+feeding; this principle might shrink that scope.
+**Scope impact:** ticket #41 (pet-care depth) is gutted by this decision. Mood, food tiers, auto-feed, and vacation mode are all out. Only "tap reaction" survives from #41's original scope — and that may roll into #40 (celebration). See §11.
 
 ---
 
 ## 5. Psychological levers 🟡
 
-Three mechanisms, in priority order. Visual decisions should exploit these deliberately.
+Three mechanisms, in priority order:
 
-1. **The IKEA effect** (primary) — humans overvalue what they helped build. Every workout *builds* the pet. The pet must feel *constructed by effort*, not gifted. This is why stat-driven visual changes at the moment of spend (audit §5.3) mattered — even though ADR-0006 walked back smooth geometric mutation, the *legibility* of "this changed because I trained" must survive in overlay form (tier swap, tint, growth).
+1. **The IKEA effect** (primary) — we overvalue what we help build. Every workout *builds* the pet. The pet must feel *constructed by effort*, not gifted. Stat-driven visual changes must survive in overlay form (tier swap, tint, growth, **gear**).
 
-2. **Endowment / ownership** — we overvalue things once they're "ours." The pet must feel *unique to me*, not the same creature every user has. This is the typed-FP calibration's whole point (#39/#43): if every pet converges to Focus-heavy, ownership breaks because my pet looks like your pet.
+2. **Endowment / ownership** — we overvalue things once they're "ours." The pet must feel *unique to me*. Typed-FP calibration (#39/#43) is the engine: if every pet converges, ownership breaks.
 
-3. **Mirror / identity** — we bond with representations of self. The pet is an externalized self-portrait. Heavy leg days → visibly leg-developed creature. The mirroring makes the data self-relevant in a way no chart achieves.
+3. **Mirror / identity** — we bond with representations of self. Heavy leg days → visibly leg-developed creature. The mirroring makes data self-relevant in a way no chart achieves.
 
-**Lever we explicitly refuse:** the Tamagotchi/Neopets guilt-and-decay loop. It drives engagement via anxiety, not pride. Incompatible with Section 4.
+**Refused:** the Tamagotchi/Neopets guilt-and-decay loop. Incompatible with §4.
 
 ---
 
-## 6. Reference triangulation — 🔴 OPEN
+## 6. Reference triangulation — ✅ AFFIRMED
 
-We need 3–5 existing properties that hit adjacent emotional notes — to learn from, not copy. My initial candidates (Adrian, react / add / subtract):
+Adrian's anchors: **Pokémon, World of Warcraft gear acquisition, Undertale.** The through-line is **progression worn visibly on the character** — effort made into a body.
 
-| Property | What's worth studying | Risk |
+| Reference | What we steal | How it shows up in IronQuest |
 |---|---|---|
-| **Spiritfarer** | Warm emotional bond with creatures, hand-drawn, *not* saccharine | Tone is gentle; might conflict with "serious lifter" pride |
-| **Undertale** | Geometric characters earning personality via face + timing (audit's own ref) | Indie-game quirky; might read as jokey |
-| **Monster Hunter** | Gear = visible effort. Progression is *worn*. | Human avatar, not creature — but the "effort made visible" pattern |
-| **Hades** | Mirror of Night: your build choices made visible on a persistent surface | No creature, but the self-portrait-via-choices pattern |
-| **Pokémon** | Evolution as celebration; beloved at scale | Corporate-cute; risks infantilizing |
-| **Animal Crossing** | Zero-punishment daily companionship | Too low-stakes for a "serious lifter" |
+| **World of Warcraft (gear)** | Progression is *worn*. Each piece of gear is a visible achievement on the character. | **Overlays = gear slots.** Each training achievement (PR, streak milestone, stat threshold) adds/changes a visible element on the pet — aura, marking, accessory, weapon-equivalent. This is richer than "tint the sprite" — it's a readable résumé. |
+| **Pokémon** | Evolution as a beloved, earned milestone. Type system. Gender-neutral creature archetypes (Pikachu, Lucario — none heavily coded). | Macro progression = evolution (Stage 1→4). Type triangle (Ferro/Flux/Terra). **Gender-neutral by default** (see §10) — avoid heavy gender coding. |
+| **Undertale** | Deep personality via minimal geometry — face + timing + writing, not detail. | The face is the leverage (audit §5.2). A few shapes, animated well, beat a detailed static illustration. |
 
-**🔴 Open for Adrian:** Which 3–5 of these (or others) resonate? What characters from games/shows/anime have *you* felt proud of or attached to? Your references matter more than my guesses here.
+**The synthesis:** the pet is a character whose **macro** progression is Pokémon-style evolution (stage swaps) and whose **micro** progression is WoW-gear-style accumulation (visible achievement layers between evolutions). Both encode effort. Both are readable.
 
 ---
 
-## 7. Evolution arc 🟡
+## 7. Evolution arc — ✅ AFFIRMED
 
-Stages 1→4 (Shard → Form → Prime → Apex) should tell an emotional story, not just a size-scaling story. 🟡 My draft:
+> *"Why not both? It is a reflection of me in a sense, but we want it to be formidable when we scale the battle tower. People should not be able to evolve quickly. It has to be earned considerably."* — Adrian, 2026-07-04
 
-- **Stage 1 — Shard:** nascent. Small, minimal, full of potential. The "you started" state.
-- **Stage 2 — Form:** defined. The creature's identity (type + build) becomes legible. "Your training is shaping this."
-- **Stage 3 — Prime:** peak development. Stats visibly maxed in places. "You've built something formidable."
-- **Stage 4 — Apex:** mastery. A creature that could only exist from years of specific training. "This is unmistakably *yours*."
+**Both identity AND formidable.** The pet is a self-portrait *and* a battle-ready creature. These aren't in tension — your specific training produces a specific creature that is formidable *in its own way* (a leg-day beast is formidable differently than a bench-press monster).
 
-The arc is **becoming-more-you**, not becoming-more-powerful. Stage 4 shouldn't look like a generic "max level" creature — it should look like *the specific creature that only your specific training history could produce*.
+**Evolution must be earned slowly.** Current thresholds (500/2000/5000 FP) may be too fast — at ~100 FP/workout, Stage 2 hits in ~5 workouts (~1 week). That's not "earned considerably." **🔴 Open: raise thresholds?** (see §11, Q3).
 
-**🔴 Open:** Is "becoming-more-you" the right arc, or should it be "becoming-more-formidable" (power fantasy)? They're different. Pride-in-identity vs pride-in-strength.
+Stages tell a hybrid story (identity + formidability):
+- **Stage 1 — Shard:** nascent, promising. Reads to a newer lifter as "this is the beginning of something," not "you have nothing."
+- **Stage 2 — Form:** defined. Type + build become legible. "Your training is shaping this."
+- **Stage 3 — Prime:** visibly formidable. Stats maxed in places; looks like it could hold its own. Pride of construction.
+- **Stage 4 — Apex:** unmistakably *yours* and unmistakably powerful. A creature only your specific training history could produce — and one ready for the Tower.
+
+**Forward constraint:** the avatar art must support the battle-tower use case (Phase 3). Silhouettes need readable strength/power, not just expression. The pet has to look like it could fight.
 
 ---
 
-## 8. Visual principles 🟡 (downstream of 3–5)
+## 8. Visual principles 🟡 (downstream of 3–7)
 
-These follow *from* the intent. Each principle should trace back to Section 3 (pride) or 4 (not a chore).
+Each principle traces to a settled section. Rev 2 additions in bold.
 
-- **Silhouette before detail.** Recognition comes from silhouette; personalization from deformation (audit §5.1). One base body shape per type, deformed by stats.
-- **Face is the leverage.** ~90% of geometric-character charm is eyes + timing (audit §5.2). The face conveys *quiet composure*, not pleading. Eyes that follow a tap, squint on a PR, sparkle after a streak milestone — never "sad puppy eyes" begging for food.
-- **Color = stat language.** Stat colors already exist in `colors.stats.*`. Carry them onto the pet so radar, stat rows, and creature speak one language (audit §5.5). Power → warm intensity, Spirit → glow, etc.
-- **Stat changes are legible at the moment of spend.** ADR-0006 keeps this via overlays (tier swap, tint growth) even though base geometry is fixed.
-- **No pathetic resting state.** The pet's default expression is composed, never needy (Section 4).
-- **Training résumé markings.** Subtle accumulation marks (rings, notches, glow intensity) for streaks/milestones — the pet as readable training history (audit §5.4).
+- **Silhouette before detail.** Recognition from silhouette; personalization from deformation. One base body per type, deformed by stats + worn gear.
+- **Face is the leverage.** ~90% of geometric-character charm is eyes + timing. The face conveys *earned composure* — confident, not pleading. Never "sad puppy eyes."
+- **Color = stat language.** `colors.stats.*` carried onto the pet so radar, stat rows, and creature speak one language.
+- **Stat changes are legible at the moment of spend.** Survives via overlays (ADR-0006).
+- **No pathetic resting state.** Default expression is composed (§4).
+- **Overlays = gear slots (NEW, from §6).** Each achievement adds a visible element (aura ring, marking notch, accessory, weapon-equivalent). The pet accumulates "gear" the way a WoW character does — readable as a training résumé.
+- **Gender-neutral by default (NEW, from §10).** No heavy gender coding in the base art. Proportions, features, and expressions stay neutral. Personalization (if ever) is a future feature, not v1.
+- **Motion is mandatory (NEW, from §10).** No static pets. Breathing, idle micro-motion, tap reactions, achievement bursts — all required. A static sprite is a sticker, not a creature.
+- **Training résumé markings.** Subtle accumulation marks for streaks/milestones (audit §5.4) — one per week of ≥3 workouts, glow intensity from current streak.
 
 ---
 
 ## 9. The glance test 🟡
 
-The UX spec's promise: *a training partner can glance at your pet and read "high-volume leg-day consistency freak."* The pet must be a **readable training résumé** at a look.
+The UX spec's promise: *a training partner can glance at your pet and read "high-volume leg-day consistency freak."*
 
 | Signal | What it conveys |
 |---|---|
-| Silhouette proportions | Which body region is developed (legs vs upper vs core) |
+| Silhouette proportions | Which body region is developed |
 | Color distribution | Which stats dominate (warm = power, cool = speed/control) |
-| Streak markings (rings/glow) | Consistency over weeks |
+| **Gear / markings** | Specific achievements (PR count, streak weeks, milestones) |
 | Size / evolution stage | Total accumulated effort |
 | Type (Ferro/Flux/Terra) | Training *character* — explosive vs endurance vs control |
 
-This is what no competitor offers. It's the differentiator made visible. Every visual decision should be auditable against: *"can someone read this off the pet in 2 seconds?"*
+The pet must be a readable training résumé at a 2-second glance. Every visual decision auditable against: *"can someone read this off the pet quickly?"*
 
 ---
 
-## 10. Anti-patterns 🔴
+## 10. Anti-patterns — ✅ AFFIRMED
 
-What we explicitly refuse. 🟡 Initial list — Adrian, add yours:
+What we explicitly refuse. Rev 2 additions in bold.
 
 - **Generic AI mascot** — the smoke-test result. Warm starburst with dot eyes, indistinguishable from any icon pack.
-- **Needy / pleading expression** — Tamagotchi guilt-bait. Violates Section 4.
-- **Too juvenile** — Pokémon-tier cute may conflict with "serious lifter" pride.
-- **Too dark/edgy** — not a horror aesthetic; pride isn't grimness.
-- **Uncanny realism** — stylized/geometric is the lane, not photoreal.
-- **Static** — a pet that doesn't visibly change with stats is a sticker, not a mirror.
-- **Identical across users** — if my pet can look like yours, the mirror/ownership levers break.
+- **Needy / pleading expression** — Tamagotchi guilt-bait. Violates §4.
+- **Gender-coded by the system (NEW)** — a user's workout split must not generate a pet that reads as feminine (or masculine) in a way that alienates them. **The user cannot be at the whim of the system's design here.** Default to gender-neutral; if personalization is wanted later, it's a user *choice*, not a system output.
+- **Too juvenile** — risks infantilizing the "serious lifter" pride.
+- **Too dark/edgy** — pride isn't grimness.
+- **Realism** — stylized/geometric is the lane, not photoreal.
+- **Static (NEW, emphasized)** — a pet without animation is a sticker. Motion is mandatory.
+- **Identical across users** — breaks mirror/ownership levers.
 
 ---
 
-## 11. Open questions for Adrian
+## 11. Open questions (Rev 2)
 
-Carry these into the next pass:
+Graduated to ✅ in Rev 2: persona (§2), hunger/mood dropped (§4), references (§6), evolution arc (§7), anti-patterns (§10).
 
-1. **Persona confirm (Section 2):** intermediate-only, or also newer lifters who need motivation?
-2. **Hunger/mood in v1 (Section 4):** keep as opt-in, or drop entirely until we know if it reads as a chore?
-3. **References (Section 6):** which 3–5 properties resonate with you? What characters have you felt proud of?
-4. **Evolution arc (Section 7):** "becoming-more-you" (identity) or "becoming-more-formidable" (power)?
-5. **Anti-patterns (Section 10):** what else do you reflexively not want this to feel like?
+**New questions raised by those answers:**
+
+1. **Gear slot taxonomy (from §6/§8):** what are the visible "gear" layers? Candidates: aura ring (Spirit/streak), shoulder spikes (Power), chest plate (Guard), leg streamlines (Speed), forearm bands (Focus), core gem (Vigor). Need to define the slots before designing them.
+
+2. **Gender-neutral design constraints (from §10):** what specific art-direction rules keep the base neutral? Avoid: pronounced curves/waists, eyelash detail, certain proportions. Lean on: geometric strength, abstract creature forms (Pokémon-style). Worth pinning down concretely before Higgsfield prompts.
+
+3. **Evolution thresholds (from §7):** are 500/2000/5000 FP too fast for "earned considerably"? At ~100 FP/workout, Stage 2 = ~1 week. Should we raise 5–10×? This is a game-economy decision that affects feel. Connects to `src/config/fp-values.ts`.
+
+4. **Ticket #41 disposition (from §4):** mood/food/vacation all dropped. Options: (a) close #41, roll "tap reaction" into #40 (celebration); (b) repurpose #41 to "personalization v0" — a basic character-customization path addressing §10's gender-sensitivity concern (let user pick aesthetic traits within type constraints). (b) is more ambitious but directly addresses a real user concern.
+
+5. **Newer-lifter Stage 1 tone (from §2):** how does the Stage 1 pet read to someone who's never lifted? Needs to feel promising, not pathetic or empty. Affects the Stage 1 illustration prompt specifically.
 
 ---
 
@@ -169,8 +179,9 @@ Carry these into the next pass:
 
 Once sections stabilize, they constrain:
 - **Higgsfield prompts** for the 12 base illustrations (ADR-0006) — vibe language comes from §3/§6/§8
-- **Overlay system** (procedural, on top of base sprites) — what overlays exist comes from §5/§8/§9
-- **Pet-care ticket (#41) scope** — Section 4 may shrink mood/feeding scope
-- **Celebration layer (#40) animation vocabulary** — face/eye reactions come from §8
+- **Overlay system** (procedural, on top of base sprites) — gear slots come from §6/§8/§9
+- **Pet-care ticket (#41) scope** — §4 gutted it; §11 Q4 decides disposition
+- **Celebration layer (#40) animation vocabulary** — face/eye + achievement-burst reactions come from §8
+- **FP economy** — §7/§11 Q3 may raise evolution thresholds
 
-No Higgsfield generation until §3, §4, §6, §7 are stable. Prompts without intent produce clipart (the smoke test proved this).
+No Higgsfield generation until §8 (visual principles incl. gear + gender-neutral + motion) is pinned to concrete rules. Prompts without intent produce clipart (the smoke test proved this).
