@@ -171,7 +171,9 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
       if (weight !== undefined && weight !== null) {
         const exerciseData = state.exercises[exerciseIndex];
         if (exerciseData?.id) {
-          useWeightHistoryStore.getState().saveWeight(exerciseData.id, weight, useSettingsStore.getState().units);
+          useWeightHistoryStore
+            .getState()
+            .saveWeight(exerciseData.id, weight, useSettingsStore.getState().units);
         }
       }
 
@@ -204,7 +206,9 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
       if (weight !== undefined && weight !== null) {
         const exerciseData = state.exercises[exerciseIndex];
         if (exerciseData?.id) {
-          useWeightHistoryStore.getState().saveWeight(exerciseData.id, weight, useSettingsStore.getState().units);
+          useWeightHistoryStore
+            .getState()
+            .saveWeight(exerciseData.id, weight, useSettingsStore.getState().units);
         }
       }
 

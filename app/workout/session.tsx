@@ -120,8 +120,7 @@ export default function WorkoutSessionScreen() {
     if (!currentExercise) return;
 
     const lastWeight = getLastWeight(currentExercise.id);
-    const quickWeight =
-      lastWeight && lastWeight > 0 && weightUnitMatches ? lastWeight : undefined;
+    const quickWeight = lastWeight && lastWeight > 0 && weightUnitMatches ? lastWeight : undefined;
 
     haptics.success();
     logSet(currentExerciseIndex, setIndex, reps, quickWeight);
