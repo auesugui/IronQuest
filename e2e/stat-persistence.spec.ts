@@ -292,9 +292,9 @@ test.describe('Stat Persistence - No Initial State', () => {
 
     // All three type options should be selectable
     for (const typeName of ['Ferro', 'Flux', 'Terra']) {
-      await expect(
-        page.getByRole('button', { name: `Select ${typeName} type` })
-      ).toBeVisible({ timeout: 10000 });
+      await expect(page.getByRole('button', { name: `Select ${typeName} type` })).toBeVisible({
+        timeout: 10000,
+      });
     }
 
     // App should not crash
