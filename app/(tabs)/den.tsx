@@ -3,9 +3,17 @@
 // =============================================================================
 
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import Animated, {
+  useAnimatedStyle,
+  useSharedValue,
+  withSequence,
+  withSpring,
+  withTiming,
+} from 'react-native-reanimated';
 
+import { CELEBRATION } from '@/components/celebration';
 import { PetAvatar } from '@/components/pet';
-import { selectTotalFP, usePetStore, usePlayerStore } from '@/stores';
+import { selectTotalFP, usePetStore, usePlayerStore, useSettingsStore } from '@/stores';
 import { colors, radius, spacing, textStyles } from '@/theme';
 import type { StatType } from '@/types';
 import { haptics } from '@/utils/haptics';
@@ -31,6 +39,22 @@ export default function DenScreen() {
   const hunger = usePetStore((state) => state.hunger);
   const petType = usePetStore((state) => state.type);
   const petName = usePetStore((state) => state.name);
+
+  // Tap reaction: quick squash-and-settle spring. Reduced motion keeps the
+  // haptic acknowledgment but skips the movement.
+  const reducedMotion = useSettingsStore((state) => state.reducedMotion);
+  const tapBounce = useSharedValue(1);
+  const tapBounceStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: tapBounce.value }],
+  }));
+  const handlePetTap = () => {
+    haptics.tap();
+    if (reducedMotion) return;
+    tapBounce.value = withSequence(
+      withTiming(0.92, { duration: 90 }),
+      withSpring(1, CELEBRATION.settle)
+    );
+  };
 
   // Pet actions
   const upgradeStat = usePetStore((state) => state.upgradeStat);
@@ -139,15 +163,24 @@ export default function DenScreen() {
         <Text style={styles.fpValue}>{totalFP.toLocaleString()}</Text>
       </View>
 
-      {/* Pet Display */}
+      {/* Pet Display — tap for an acknowledgment bounce (issue #40, folded
+          from #41). Pure celebration vocabulary: no mood system behind it. */}
       <View style={styles.petContainer}>
-        <PetAvatar
-          petType={petType}
-          stats={stats}
-          evolutionStage={evolutionStage}
-          size={180}
-          animated={true}
-        />
+        <Pressable
+          onPress={handlePetTap}
+          accessibilityRole="button"
+          accessibilityLabel={`${petName || 'Your pet'} — tap to interact`}
+        >
+          <Animated.View style={tapBounceStyle}>
+            <PetAvatar
+              petType={petType}
+              stats={stats}
+              evolutionStage={evolutionStage}
+              size={180}
+              animated={true}
+            />
+          </Animated.View>
+        </Pressable>
         <Text style={styles.petName}>{petName || 'Your Pet'}</Text>
         <Text style={styles.petType}>{petType} Type</Text>
       </View>
