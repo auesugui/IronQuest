@@ -4,6 +4,8 @@
 > **Maturity legend:** ✅ AFFIRMED (Adrian confirmed) · 🟡 DRAFT (my hypothesis, react to it) · 🔴 OPEN (needs Adrian's input)
 > **Origin:** Born from the 2026-07-04 design deep-dive. Supersedes the procedural-only framing of Phase 1; operationalizes ADR-0006 (hybrid rendering).
 > **Rev 2:** 2026-07-04 — Adrian answered §11 questions; sections 2/3/4/6/7/10 updated; new questions raised (see §11).
+> **Rev 3:** 2026-07-05 — Zelda ceremony tiers + WoW rarity channel folded into §6/§8.
+> **Rev 4:** 2026-07-06 — §8.1 gender-neutral construction rules pinned to concrete tests (answers §11 Q2); §8.2 Stage-2 Flux reference illustration spec added; first reference generations run against it.
 
 ---
 
@@ -127,6 +129,52 @@ Each principle traces to a settled section. Rev 2 additions in bold.
 - **Rarity color system (NEW, from §6).** Gear carries a rarity tier (Common→Legendary) encoded as glow/aura color, **separate from the stat's fill color**. Two channels, both readable: stat fill = *which* stat; rarity glow = *achievement level*. Aspiration built in (users chase the orange).
 - **Acquisition ceremony (NEW, from §6).** Milestones get time spent on them — not rushed past. Tiered: **micro** (gold flash on PR), **minor** (gear materializes with sting), **major** (full evolution reveal, Zelda-style — held aloft, named, ~3-5s). The moment of earning is the memory.
 
+### 8.1 Gender-neutral construction rules 🟡 (concrete — answers §11 Q2)
+
+The principle in §10 ("the user cannot be at the whim of the system's design here") pinned to rules an artist or a prompt can be audited against:
+
+| Zone | Rule | Rejects | Allows |
+|---|---|---|---|
+| **Torso** | One geometric mass; width changes monotonically (taper or column). **No waist pinch** — no concave inflection between chest and hips. | Hourglass, V-taper-with-tiny-waist bodybuilder coding | Teardrop, column, trapezoid, orb |
+| **Face — eyes** | Eye shape carries expression via geometry + timing only. **No eyelashes, no lash line thickening.** | Lash detail, winged corners | Any eye geometry; blink/squint via lid angle |
+| **Face — mouth** | Optional. If present: simple line/curve. No lip volume or lip color. | Rendered lips | Beak-like, slit, or no mouth |
+| **Surface** | No hair that reads as hairstyle. Crests/fins/energy-plumes fine — they read as *creature anatomy*, not grooming. | Manes styled like haircuts, bangs | Flux energy crest, Ferro plating ridges, Terra moss |
+| **Stance** | Strength via mass, groundedness, and posture — never via gendered anatomy (chest emphasis, hip tilt). | Contrapposto hip-shot poses | Square stance, forward lean (Speed), wide base (Guard) |
+| **Color** | Type palette only (`colors.types.*` + stat accents). No pink/blue gender-code channels. | — | Full type palette at any saturation |
+
+**The audit test (borrowed from §6's Pokémon row):** *the Lucario test* — shown the creature cold, users of any gender should be able to answer "is this male or female?" only with "…it's a creature." If anyone answers confidently, a rule above was violated.
+
+### 8.2 Reference illustration spec — Stage-2 Flux 🟡 (the §8 pin vehicle)
+
+§8 can't graduate to ✅ in the abstract — it graduates when Adrian reacts to an image. One reference illustration, spec'd from the affirmed sections, generated via Higgsfield (exploration spend, not the production 12):
+
+- **Subject:** Stage 2 "Form" (§7) — defined, becoming, *not* maxed. Type + build legible; visibly mid-arc. Reads as "your training is shaping this," not a finished apex creature.
+- **Type language (from `pet-types.md`):** Flux — energetic, fluid, electric. Neon glows, wave patterns, pulses. Type color `#A855F7`. Affinity Speed + Spirit → forward-leaning streamlined silhouette, subtle white-gold aura (`#FEF08A`) at low intensity (Stage 2 ≠ high Spirit yet).
+- **Silhouette (audit §5.1):** tall teardrop, readable in pure black at 128 px. Deformation headroom in every direction (spikes, plating, elongation) — the base must not pre-commit to a build.
+- **Face (§8 "face is the leverage"):** large simple eyes, **earned composure** — confident, settled, faint upward tilt. Not pleading, not cute-coded, not fierce. Passes every 8.1 rule.
+- **Gear readiness (§6):** clean anchor zones where the 6 gear slots would attach (crown, chest, flanks, base) — visually *quiet* zones, not decorated ones. The reference shows zero or one Common-tier piece at most.
+- **Formidability check (§7):** could plausibly fight. Poise and density, not menace.
+- **Format:** full body, centered, on the app's dark field (`#0F172A`), stylized geometric with glow — flat-shaded planes + emissive accents. No photorealism, no painterly texture, no outline-sticker look.
+- **Motion implication (§8):** design must *imply* its idle — a body whose breathing/pulse cycle is obvious from the still (wave patterns want to flow, aura wants to shimmer). If a still looks inherently static, it fails.
+
+### 8.3 Reference generation log — 2026-07-06 🔴 (awaiting Adrian's react)
+
+Four iterations against §8.2, Nano Banana Pro, 8 credits total (month spend now 12/400). Images in `reference-art/`.
+
+| Iter | Image | Verdict | What it taught |
+|---|---|---|---|
+| v1 | ![v1](reference-art/flux-stage2-v1.png) | ❌ Reject | **The §8.1 rules earn their keep on the first roll.** Prompt said "no human anatomy"; model produced a slim humanoid with eyebrow arch — fails the Lucario test instantly. This is §10's "gender-coded by the system" failure happening by *default*. Production prompts must ban the humanoid frame explicitly and loudly. |
+| v2 | ![v2](reference-art/flux-stage2-v2.png) | 🟡 Strong direction | Creature achieved: teardrop silhouette, crest fins, chest core, faceted crystalline planes, genuinely gender-neutral. Misses: hunched/timid stance (Flux = Speed), hooded dark face + spiral irises drift toward "specter," not earned composure. |
+| v3 | ![v3](reference-art/flux-stage2-v3.png) | ❌ Overcorrection | Fixed motion + posture but went soft/wispy — reads cute-juvenile (§10 reject) and lost the crystalline construction and all formidability. Useful as the *other* boundary: fluidity without density fails §7. |
+| v4 | ![v4](reference-art/flux-stage2-v4.png) | ✅ **Candidate** | v2 refined via image reference: luminous violet face (no shadow cavity), plain almond irises, calmer expression, crystalline construction intact. Stance still leans forward more than spec'd — acceptable for Flux, or fixable in a v5 if Adrian wants more upright poise. |
+
+**Recommendation:** v4 is the Stage-2 Flux direction — crystalline energy planes, composed luminous face, visible core. If affirmed, it becomes the style anchor (image reference) for the production 12, and §8/§8.1/§8.2 graduate to ✅.
+
+**Prompt-engineering findings for the production run (bank these):**
+1. Negative constraints stated once get ignored; the humanoid ban needs caps + repetition + a positive replacement frame ("Pokémon-style spirit-animal, large head ≈ ⅓ height").
+2. Image-reference iteration (v2 → v4) preserves construction far better than re-prompting from text — generate each type's Stage 2 first, then derive Stages 1/3/4 as reference edits. This also solves cross-stage identity continuity for free.
+3. "Digitigrade sprinter legs" pulled the model toward cute; density language ("energy density," "faceted planes") pulled toward formidable. The §7 both-identity-and-formidable balance lives in that tension — tune with one knob at a time.
+
 ---
 
 ## 9. The glance test 🟡
@@ -168,7 +216,7 @@ Graduated to ✅ in Rev 2: persona (§2), hunger/mood dropped (§4), references 
 
 1. **Gear slot taxonomy (from §6/§8) — refined by rarity system:** gear is a **stat × rarity matrix**. Slot = which stat (6 candidates: Power spikes, Guard plate, Speed streamlines, Vigor gem, Focus crest, Spirit aura). Rarity = achievement tier (Common→Legendary via WoW color system, encoded as glow). **🔴 Confirm:** the 6 stat slots + adopt the rarity tier colors as a second visual channel?
 
-2. **Gender-neutral design constraints (from §10):** what specific art-direction rules keep the base neutral? Avoid: pronounced curves/waists, eyelash detail, certain proportions. Lean on: geometric strength, abstract creature forms (Pokémon-style). Worth pinning down concretely before Higgsfield prompts.
+2. **Gender-neutral design constraints (from §10):** ~~what specific art-direction rules keep the base neutral?~~ **Pinned in Rev 4 — see §8.1** (zone-by-zone rules + the Lucario test). 🟡 until Adrian reacts to the reference illustration generated against them.
 
 3. **Evolution thresholds (from §7):** are 500/2000/5000 FP too fast for "earned considerably"? At ~100 FP/workout, Stage 2 = ~1 week. Should we raise 5–10×? This is a game-economy decision that affects feel. Connects to `src/config/fp-values.ts`.
 
@@ -187,4 +235,4 @@ Once sections stabilize, they constrain:
 - **Celebration layer (#40) animation vocabulary** — face/eye + achievement-burst reactions come from §8
 - **FP economy** — §7/§11 Q3 may raise evolution thresholds
 
-No Higgsfield generation until §8 (visual principles incl. gear + gender-neutral + motion) is pinned to concrete rules. Prompts without intent produce clipart (the smoke test proved this).
+No **production** Higgsfield generation (the 12 base sprites) until §8 is ✅. Rev 4 distinction: **reference/exploration generation is the mechanism for graduating §8** — spec'd in §8.2, prompted only from pinned rules, budgeted as exploration spend (~6 cr). Prompts without intent produce clipart (the smoke test proved this); §8.1/§8.2 are the intent.
