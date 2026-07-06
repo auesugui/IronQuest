@@ -4,7 +4,6 @@
 
 export {
   EXERCISE_DATABASE,
-  MUSCLE_TO_FP,
   getExerciseById,
   getExercisesByMuscle,
   getExercisesByPattern,
@@ -17,6 +16,7 @@ export type {
   MovementPattern,
   Equipment,
   ExerciseDefinition,
+  FPDistribution,
 } from './exercises';
 
 export {
