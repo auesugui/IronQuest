@@ -50,34 +50,41 @@ export interface WorkoutTemplateDefinition {
 // Helper to calculate FP distribution from exercises
 // -----------------------------------------------------------------------------
 
-import { EXERCISE_DATABASE, MUSCLE_TO_FP } from './exercises';
+import { EXERCISE_DATABASE } from './exercises';
 
 // Exported so stores/UI can recompute distributions after editing a personal
 // copy (issue #5). Keeping a single implementation prevents shadow calculators
 // — see the engineer prompt's "Shadow calculator guard".
+//
+// Reads each exercise's weighted `fpDistribution` directly (issue #39 / audit
+// C5). The primary mover emits dominantly (≥ 0.7) so a pet reflects its
+// owner's training split instead of every template converging on a Focus-heavy
+// shape. Sets act as the volume multiplier.
+const ZERO_DISTRIBUTION: Record<StatType, number> = {
+  power: 0,
+  guard: 0,
+  speed: 0,
+  vigor: 0,
+  focus: 0,
+  spirit: 0, // Always 0 for workouts — Spirit is streak-only (Core Design Rule)
+};
+
 export function calculateDayFPDistribution(
   exercises: TemplateExercise[]
 ): Record<StatType, number> {
-  const fpCounts: Record<StatType, number> = {
-    power: 0,
-    guard: 0,
-    speed: 0,
-    vigor: 0,
-    focus: 0,
-    spirit: 0, // Always 0 for workouts, only from streaks
-  };
+  const fpCounts: Record<StatType, number> = { ...ZERO_DISTRIBUTION };
 
   for (const templateEx of exercises) {
     const exercise = EXERCISE_DATABASE.find((e) => e.id === templateEx.exerciseId);
-    if (exercise) {
-      // Weight by sets
-      const weight = templateEx.sets;
-      for (const muscle of exercise.muscleGroups) {
-        const fpTypes = MUSCLE_TO_FP[muscle];
-        for (const fpType of fpTypes) {
-          fpCounts[fpType] += weight / exercise.muscleGroups.length;
-        }
-      }
+    if (!exercise) continue;
+
+    // Weight each exercise's FP split by its set count (volume proxy).
+    const setWeight = templateEx.sets;
+    for (const [stat, fraction] of Object.entries(exercise.fpDistribution)) {
+      // Spirit can never appear here — exercises don't emit it — but guard
+      // anyway so a bad data entry can't silently leak streak-only FP.
+      if (stat === 'spirit') continue;
+      fpCounts[stat as StatType] += (fraction ?? 0) * setWeight;
     }
   }
 
@@ -85,7 +92,7 @@ export function calculateDayFPDistribution(
   const total = Object.values(fpCounts).reduce((sum, val) => sum + val, 0);
   if (total === 0) return fpCounts;
 
-  const normalized: Record<StatType, number> = {
+  return {
     power: Math.round((fpCounts.power / total) * 100),
     guard: Math.round((fpCounts.guard / total) * 100),
     speed: Math.round((fpCounts.speed / total) * 100),
@@ -93,8 +100,6 @@ export function calculateDayFPDistribution(
     focus: Math.round((fpCounts.focus / total) * 100),
     spirit: 0,
   };
-
-  return normalized;
 }
 
 export function calculateTotalFPDistribution(days: TemplateDay[]): Record<StatType, number> {
