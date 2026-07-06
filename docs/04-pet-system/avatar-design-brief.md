@@ -6,6 +6,7 @@
 > **Rev 2:** 2026-07-04 — Adrian answered §11 questions; sections 2/3/4/6/7/10 updated; new questions raised (see §11).
 > **Rev 3:** 2026-07-05 — Zelda ceremony tiers + WoW rarity channel folded into §6/§8.
 > **Rev 4:** 2026-07-06 — §8.1 gender-neutral construction rules pinned to concrete tests (answers §11 Q2); §8.2 Stage-2 Flux reference illustration spec added; first reference generations run against it.
+> **Rev 5:** 2026-07-06 — **v4 affirmed by Adrian.** §8/§8.1/§8.2/§8.3 graduate to ✅; v4 is the style anchor for the production 12. ADR-0009.
 
 ---
 
@@ -113,7 +114,7 @@ Stages tell a hybrid story (identity + formidability):
 
 ---
 
-## 8. Visual principles 🟡 (downstream of 3–7)
+## 8. Visual principles — ✅ AFFIRMED (Rev 5, via v4 reference)
 
 Each principle traces to a settled section. Rev 2 additions in bold.
 
@@ -129,7 +130,7 @@ Each principle traces to a settled section. Rev 2 additions in bold.
 - **Rarity color system (NEW, from §6).** Gear carries a rarity tier (Common→Legendary) encoded as glow/aura color, **separate from the stat's fill color**. Two channels, both readable: stat fill = *which* stat; rarity glow = *achievement level*. Aspiration built in (users chase the orange).
 - **Acquisition ceremony (NEW, from §6).** Milestones get time spent on them — not rushed past. Tiered: **micro** (gold flash on PR), **minor** (gear materializes with sting), **major** (full evolution reveal, Zelda-style — held aloft, named, ~3-5s). The moment of earning is the memory.
 
-### 8.1 Gender-neutral construction rules 🟡 (concrete — answers §11 Q2)
+### 8.1 Gender-neutral construction rules — ✅ AFFIRMED (concrete — answers §11 Q2)
 
 The principle in §10 ("the user cannot be at the whim of the system's design here") pinned to rules an artist or a prompt can be audited against:
 
@@ -144,7 +145,7 @@ The principle in §10 ("the user cannot be at the whim of the system's design he
 
 **The audit test (borrowed from §6's Pokémon row):** *the Lucario test* — shown the creature cold, users of any gender should be able to answer "is this male or female?" only with "…it's a creature." If anyone answers confidently, a rule above was violated.
 
-### 8.2 Reference illustration spec — Stage-2 Flux 🟡 (the §8 pin vehicle)
+### 8.2 Reference illustration spec — Stage-2 Flux — ✅ AFFIRMED (the §8 pin vehicle)
 
 §8 can't graduate to ✅ in the abstract — it graduates when Adrian reacts to an image. One reference illustration, spec'd from the affirmed sections, generated via Higgsfield (exploration spend, not the production 12):
 
@@ -157,7 +158,7 @@ The principle in §10 ("the user cannot be at the whim of the system's design he
 - **Format:** full body, centered, on the app's dark field (`#0F172A`), stylized geometric with glow — flat-shaded planes + emissive accents. No photorealism, no painterly texture, no outline-sticker look.
 - **Motion implication (§8):** design must *imply* its idle — a body whose breathing/pulse cycle is obvious from the still (wave patterns want to flow, aura wants to shimmer). If a still looks inherently static, it fails.
 
-### 8.3 Reference generation log — 2026-07-06 🔴 (awaiting Adrian's react)
+### 8.3 Reference generation log — 2026-07-06 — ✅ AFFIRMED (v4 = style anchor, ADR-0009)
 
 Four iterations against §8.2, Nano Banana Pro, 8 credits total (month spend now 12/400). Images in `reference-art/`.
 
@@ -166,9 +167,9 @@ Four iterations against §8.2, Nano Banana Pro, 8 credits total (month spend now
 | v1 | ![v1](reference-art/flux-stage2-v1.png) | ❌ Reject | **The §8.1 rules earn their keep on the first roll.** Prompt said "no human anatomy"; model produced a slim humanoid with eyebrow arch — fails the Lucario test instantly. This is §10's "gender-coded by the system" failure happening by *default*. Production prompts must ban the humanoid frame explicitly and loudly. |
 | v2 | ![v2](reference-art/flux-stage2-v2.png) | 🟡 Strong direction | Creature achieved: teardrop silhouette, crest fins, chest core, faceted crystalline planes, genuinely gender-neutral. Misses: hunched/timid stance (Flux = Speed), hooded dark face + spiral irises drift toward "specter," not earned composure. |
 | v3 | ![v3](reference-art/flux-stage2-v3.png) | ❌ Overcorrection | Fixed motion + posture but went soft/wispy — reads cute-juvenile (§10 reject) and lost the crystalline construction and all formidability. Useful as the *other* boundary: fluidity without density fails §7. |
-| v4 | ![v4](reference-art/flux-stage2-v4.png) | ✅ **Candidate** | v2 refined via image reference: luminous violet face (no shadow cavity), plain almond irises, calmer expression, crystalline construction intact. Stance still leans forward more than spec'd — acceptable for Flux, or fixable in a v5 if Adrian wants more upright poise. |
+| v4 | ![v4](reference-art/flux-stage2-v4.png) | ✅ **AFFIRMED** (2026-07-06, ADR-0009) | v2 refined via image reference: luminous violet face (no shadow cavity), plain almond irises, calmer expression, crystalline construction intact. Stance still leans forward more than spec'd — acceptable for Flux, or fixable in a v5 if Adrian wants more upright poise. |
 
-**Recommendation:** v4 is the Stage-2 Flux direction — crystalline energy planes, composed luminous face, visible core. If affirmed, it becomes the style anchor (image reference) for the production 12, and §8/§8.1/§8.2 graduate to ✅.
+**Affirmed:** v4 is the Stage-2 Flux direction — crystalline energy planes, composed luminous face, visible core. It is the style anchor (image reference) for the production 12; §8/§8.1/§8.2 are now hard constraints per §0.
 
 **Prompt-engineering findings for the production run (bank these):**
 1. Negative constraints stated once get ignored; the humanoid ban needs caps + repetition + a positive replacement frame ("Pokémon-style spirit-animal, large head ≈ ⅓ height").
