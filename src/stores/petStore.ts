@@ -2,6 +2,7 @@
 // IronQuest Pet Store - Stats, Evolution, Care
 // =============================================================================
 
+import { FP_CONFIG } from '@/config/fp-values';
 import type { PetStats, PetType } from '@/types';
 import { STORAGE_KEYS, appStorage } from '@/utils/storage';
 import { create } from 'zustand';
@@ -62,12 +63,15 @@ type PetStore = PetState & PetActions;
 // Constants
 // -----------------------------------------------------------------------------
 
-// Evolution thresholds in total FP earned
+// Evolution thresholds in total FP earned. Derived from the single tuning
+// file — petStore previously carried its own copy of these numbers, the same
+// shadow-config pattern behind the June FP fracture (audit C4).
+const [, STAGE_2_FP, STAGE_3_FP, STAGE_4_FP] = FP_CONFIG.evolution.thresholds;
 const EVOLUTION_THRESHOLDS: Record<EvolutionStage, number> = {
   1: 0,
-  2: 500,
-  3: 2000,
-  4: 5000,
+  2: STAGE_2_FP,
+  3: STAGE_3_FP,
+  4: STAGE_4_FP,
 };
 
 // Hunger decay rate: 5 points per hour (100 points over 20 hours)
@@ -247,7 +251,13 @@ export const usePetStore = create<PetStore>((set, get) => ({
   addFP: (amount) => {
     set((state) => {
       const newTotalFP = state.totalFPEarned + amount;
-      const newStage = getEvolutionStageFromFP(newTotalFP);
+      // Evolution is monotonic: a pet that reached a stage keeps it even if
+      // thresholds are later raised ("No Punishment for Absence" extends to
+      // economy retuning — never demote an earned stage).
+      const newStage = Math.max(
+        getEvolutionStageFromFP(newTotalFP),
+        state.evolutionStage
+      ) as EvolutionStage;
       const now = nowISO();
 
       const newState: PetState = {
