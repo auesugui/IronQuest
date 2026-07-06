@@ -5,11 +5,12 @@
 // Ferro/Flux/Terra taxonomy. The selected type is forwarded to the next step
 // via router params (stateless — no transient store needed).
 
-import { router } from 'expo-router';
+import { Redirect, router } from 'expo-router';
 import { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { PetAvatar, createDefaultStats } from '@/components/pet';
+import { selectIsPetInitialized, usePetStore } from '@/stores';
 import { colors, radius, spacing, textStyles } from '@/theme';
 import type { PetType } from '@/types';
 import { haptics } from '@/utils/haptics';
@@ -52,7 +53,14 @@ const TYPE_OPTIONS: TypeOption[] = [
 const PREVIEW_STATS = createDefaultStats();
 
 export default function OnboardingTypeScreen() {
+  const isPetInitialized = usePetStore(selectIsPetInitialized);
   const [selected, setSelected] = useState<PetType | null>(null);
+
+  // An initialized pet means onboarding is done — never show it again, whether
+  // reached via back-nav, deep link, or a reload while sitting on this route.
+  if (isPetInitialized) {
+    return <Redirect href="/(tabs)" />;
+  }
 
   const handleSelect = (id: PetType) => {
     setSelected(id);
