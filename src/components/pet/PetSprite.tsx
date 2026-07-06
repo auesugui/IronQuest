@@ -41,7 +41,13 @@ function getDominantStat(stats: PetStats): { stat: (typeof GLOW_STATS)[number]; 
   return { stat: dominant, value: max };
 }
 
-export function PetSprite({ petType, stats, evolutionStage, size, animated = true }: PetAvatarProps) {
+export function PetSprite({
+  petType,
+  stats,
+  evolutionStage,
+  size,
+  animated = true,
+}: PetAvatarProps) {
   const breatheScale = useSharedValue(1);
   const particlePhase = useSharedValue(0);
 
