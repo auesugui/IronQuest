@@ -45,6 +45,29 @@ export type Equipment =
   | 'band';
 
 // -----------------------------------------------------------------------------
+// Typed-FP Distribution
+// -----------------------------------------------------------------------------
+//
+// Each exercise carries a weighted `fpDistribution` describing how the FP it
+// earns splits across the five trainable stat types (power/guard/speed/vigor/
+// focus). Spirit is NEVER produced by an exercise — it is streak-only per the
+// Core Design Rule, so it must not appear in any entry below.
+//
+// Weights are fractions of 1.0 and SHOULD sum to ~1.0:
+//   - Compound lifts: primary mover gets ≥ 0.7 (we standardize on 0.8 / 0.2).
+//     This is the C5 fix (audit 2026-07): the old equal-weight `['power','focus']`
+//     arrays leaked the secondary type into every push/pull compound and made
+//     every template's radar converge on a Focus-heavy shape. The primary mover
+//     must emit dominantly so a pet reflects its owner's training split.
+//   - Isolation lifts: a single type at 1.0 (e.g. bicep curl = focus 1.0).
+//
+// `calculateDayFPDistribution` (templates.ts) reads this field directly — it is
+// load-bearing for the radar charts on template cards, NOT decorative.
+// -----------------------------------------------------------------------------
+
+export type FPDistribution = Partial<Record<StatType, number>>;
+
+// -----------------------------------------------------------------------------
 // Exercise Definition
 // -----------------------------------------------------------------------------
 
@@ -59,27 +82,8 @@ export interface ExerciseDefinition {
   defaultReps: string; // e.g., "8-12", "5x5", "10-15"
   defaultRestSeconds: number;
   isCompound: boolean;
-  fpTypes: StatType[]; // Which FP types this exercise generates
+  fpDistribution: FPDistribution; // Weighted FP type split (primary mover ≥ 0.7)
 }
-
-// -----------------------------------------------------------------------------
-// Muscle Group to FP Type Mapping
-// -----------------------------------------------------------------------------
-
-export const MUSCLE_TO_FP: Record<MuscleGroup, StatType[]> = {
-  chest: ['power', 'focus'],
-  back: ['guard', 'focus'],
-  shoulders: ['power', 'focus'],
-  biceps: ['focus'],
-  triceps: ['focus'],
-  forearms: ['focus'],
-  quads: ['speed', 'vigor'],
-  hamstrings: ['speed', 'vigor'],
-  glutes: ['vigor', 'speed'],
-  calves: ['speed'],
-  core: ['vigor'],
-  traps: ['guard'],
-};
 
 // -----------------------------------------------------------------------------
 // Exercise Database
@@ -98,7 +102,7 @@ export const EXERCISE_DATABASE: ExerciseDefinition[] = [
     defaultReps: '6-10',
     defaultRestSeconds: 180,
     isCompound: true,
-    fpTypes: ['power', 'focus'],
+    fpDistribution: { power: 0.8, focus: 0.2 },
   },
   {
     id: 'incline_dumbbell_press',
@@ -111,7 +115,7 @@ export const EXERCISE_DATABASE: ExerciseDefinition[] = [
     defaultReps: '8-12',
     defaultRestSeconds: 120,
     isCompound: true,
-    fpTypes: ['power', 'focus'],
+    fpDistribution: { power: 0.8, focus: 0.2 },
   },
   {
     id: 'dumbbell_flyes',
@@ -124,7 +128,7 @@ export const EXERCISE_DATABASE: ExerciseDefinition[] = [
     defaultReps: '10-15',
     defaultRestSeconds: 60,
     isCompound: false,
-    fpTypes: ['power'],
+    fpDistribution: { power: 1.0 },
   },
   {
     id: 'cable_crossover',
@@ -137,7 +141,7 @@ export const EXERCISE_DATABASE: ExerciseDefinition[] = [
     defaultReps: '12-15',
     defaultRestSeconds: 60,
     isCompound: false,
-    fpTypes: ['power'],
+    fpDistribution: { power: 1.0 },
   },
   {
     id: 'overhead_press',
@@ -150,7 +154,7 @@ export const EXERCISE_DATABASE: ExerciseDefinition[] = [
     defaultReps: '6-10',
     defaultRestSeconds: 180,
     isCompound: true,
-    fpTypes: ['power', 'focus'],
+    fpDistribution: { power: 0.8, focus: 0.2 },
   },
   {
     id: 'dumbbell_shoulder_press',
@@ -163,7 +167,7 @@ export const EXERCISE_DATABASE: ExerciseDefinition[] = [
     defaultReps: '8-12',
     defaultRestSeconds: 120,
     isCompound: true,
-    fpTypes: ['power', 'focus'],
+    fpDistribution: { power: 0.8, focus: 0.2 },
   },
   {
     id: 'lateral_raises',
@@ -176,7 +180,7 @@ export const EXERCISE_DATABASE: ExerciseDefinition[] = [
     defaultReps: '12-15',
     defaultRestSeconds: 60,
     isCompound: false,
-    fpTypes: ['focus'],
+    fpDistribution: { focus: 1.0 },
   },
   {
     id: 'front_raises',
@@ -189,7 +193,7 @@ export const EXERCISE_DATABASE: ExerciseDefinition[] = [
     defaultReps: '10-12',
     defaultRestSeconds: 60,
     isCompound: false,
-    fpTypes: ['focus'],
+    fpDistribution: { focus: 1.0 },
   },
   {
     id: 'rear_delt_flyes',
@@ -202,7 +206,7 @@ export const EXERCISE_DATABASE: ExerciseDefinition[] = [
     defaultReps: '12-15',
     defaultRestSeconds: 60,
     isCompound: false,
-    fpTypes: ['focus'],
+    fpDistribution: { focus: 1.0 },
   },
   {
     id: 'tricep_pushdowns',
@@ -215,7 +219,7 @@ export const EXERCISE_DATABASE: ExerciseDefinition[] = [
     defaultReps: '10-15',
     defaultRestSeconds: 60,
     isCompound: false,
-    fpTypes: ['focus'],
+    fpDistribution: { focus: 1.0 },
   },
   {
     id: 'skull_crushers',
@@ -228,7 +232,7 @@ export const EXERCISE_DATABASE: ExerciseDefinition[] = [
     defaultReps: '8-12',
     defaultRestSeconds: 60,
     isCompound: false,
-    fpTypes: ['focus'],
+    fpDistribution: { focus: 1.0 },
   },
   {
     id: 'dips',
@@ -241,7 +245,7 @@ export const EXERCISE_DATABASE: ExerciseDefinition[] = [
     defaultReps: '8-15',
     defaultRestSeconds: 90,
     isCompound: true,
-    fpTypes: ['power', 'focus'],
+    fpDistribution: { power: 0.8, focus: 0.2 },
   },
 
   // =========== PULL (Back, Biceps, Traps) ===========
@@ -256,7 +260,7 @@ export const EXERCISE_DATABASE: ExerciseDefinition[] = [
     defaultReps: '3-6',
     defaultRestSeconds: 240,
     isCompound: true,
-    fpTypes: ['guard', 'vigor'],
+    fpDistribution: { guard: 0.8, vigor: 0.2 },
   },
   {
     id: 'barbell_row',
@@ -269,7 +273,7 @@ export const EXERCISE_DATABASE: ExerciseDefinition[] = [
     defaultReps: '6-10',
     defaultRestSeconds: 180,
     isCompound: true,
-    fpTypes: ['guard', 'focus'],
+    fpDistribution: { guard: 0.8, focus: 0.2 },
   },
   {
     id: 'pull_ups',
@@ -282,7 +286,7 @@ export const EXERCISE_DATABASE: ExerciseDefinition[] = [
     defaultReps: '6-12',
     defaultRestSeconds: 120,
     isCompound: true,
-    fpTypes: ['guard', 'focus'],
+    fpDistribution: { guard: 0.8, focus: 0.2 },
   },
   {
     id: 'lat_pulldown',
@@ -295,7 +299,7 @@ export const EXERCISE_DATABASE: ExerciseDefinition[] = [
     defaultReps: '8-12',
     defaultRestSeconds: 90,
     isCompound: true,
-    fpTypes: ['guard', 'focus'],
+    fpDistribution: { guard: 0.8, focus: 0.2 },
   },
   {
     id: 'seated_cable_row',
@@ -308,7 +312,7 @@ export const EXERCISE_DATABASE: ExerciseDefinition[] = [
     defaultReps: '8-12',
     defaultRestSeconds: 90,
     isCompound: true,
-    fpTypes: ['guard', 'focus'],
+    fpDistribution: { guard: 0.8, focus: 0.2 },
   },
   {
     id: 'face_pulls',
@@ -321,7 +325,7 @@ export const EXERCISE_DATABASE: ExerciseDefinition[] = [
     defaultReps: '12-15',
     defaultRestSeconds: 60,
     isCompound: false,
-    fpTypes: ['focus'],
+    fpDistribution: { focus: 1.0 },
   },
   {
     id: 'barbell_curl',
@@ -334,7 +338,7 @@ export const EXERCISE_DATABASE: ExerciseDefinition[] = [
     defaultReps: '8-12',
     defaultRestSeconds: 60,
     isCompound: false,
-    fpTypes: ['focus'],
+    fpDistribution: { focus: 1.0 },
   },
   {
     id: 'dumbbell_curl',
@@ -347,7 +351,7 @@ export const EXERCISE_DATABASE: ExerciseDefinition[] = [
     defaultReps: '8-12',
     defaultRestSeconds: 60,
     isCompound: false,
-    fpTypes: ['focus'],
+    fpDistribution: { focus: 1.0 },
   },
   {
     id: 'hammer_curl',
@@ -360,7 +364,7 @@ export const EXERCISE_DATABASE: ExerciseDefinition[] = [
     defaultReps: '8-12',
     defaultRestSeconds: 60,
     isCompound: false,
-    fpTypes: ['focus'],
+    fpDistribution: { focus: 1.0 },
   },
   {
     id: 'shrugs',
@@ -373,7 +377,7 @@ export const EXERCISE_DATABASE: ExerciseDefinition[] = [
     defaultReps: '10-15',
     defaultRestSeconds: 60,
     isCompound: false,
-    fpTypes: ['guard'],
+    fpDistribution: { guard: 1.0 },
   },
 
   // =========== LEGS (Quads, Hamstrings, Glutes, Calves) ===========
@@ -388,7 +392,7 @@ export const EXERCISE_DATABASE: ExerciseDefinition[] = [
     defaultReps: '5-10',
     defaultRestSeconds: 240,
     isCompound: true,
-    fpTypes: ['speed', 'vigor'],
+    fpDistribution: { speed: 0.8, vigor: 0.2 },
   },
   {
     id: 'front_squat',
@@ -401,7 +405,7 @@ export const EXERCISE_DATABASE: ExerciseDefinition[] = [
     defaultReps: '6-10',
     defaultRestSeconds: 180,
     isCompound: true,
-    fpTypes: ['speed', 'vigor'],
+    fpDistribution: { speed: 0.8, vigor: 0.2 },
   },
   {
     id: 'leg_press',
@@ -414,7 +418,7 @@ export const EXERCISE_DATABASE: ExerciseDefinition[] = [
     defaultReps: '8-15',
     defaultRestSeconds: 120,
     isCompound: true,
-    fpTypes: ['speed', 'vigor'],
+    fpDistribution: { speed: 0.8, vigor: 0.2 },
   },
   {
     id: 'walking_lunges',
@@ -427,7 +431,7 @@ export const EXERCISE_DATABASE: ExerciseDefinition[] = [
     defaultReps: '10-15',
     defaultRestSeconds: 90,
     isCompound: true,
-    fpTypes: ['speed', 'vigor'],
+    fpDistribution: { speed: 0.8, vigor: 0.2 },
   },
   {
     id: 'bulgarian_split_squat',
@@ -440,7 +444,7 @@ export const EXERCISE_DATABASE: ExerciseDefinition[] = [
     defaultReps: '8-12',
     defaultRestSeconds: 90,
     isCompound: true,
-    fpTypes: ['speed', 'vigor'],
+    fpDistribution: { speed: 0.8, vigor: 0.2 },
   },
   {
     id: 'romanian_deadlift',
@@ -453,7 +457,7 @@ export const EXERCISE_DATABASE: ExerciseDefinition[] = [
     defaultReps: '6-10',
     defaultRestSeconds: 120,
     isCompound: true,
-    fpTypes: ['speed', 'vigor'],
+    fpDistribution: { speed: 0.8, vigor: 0.2 },
   },
   {
     id: 'leg_curl',
@@ -466,7 +470,7 @@ export const EXERCISE_DATABASE: ExerciseDefinition[] = [
     defaultReps: '10-15',
     defaultRestSeconds: 60,
     isCompound: false,
-    fpTypes: ['speed'],
+    fpDistribution: { speed: 1.0 },
   },
   {
     id: 'leg_extension',
@@ -479,7 +483,7 @@ export const EXERCISE_DATABASE: ExerciseDefinition[] = [
     defaultReps: '10-15',
     defaultRestSeconds: 60,
     isCompound: false,
-    fpTypes: ['speed'],
+    fpDistribution: { speed: 1.0 },
   },
   {
     id: 'hip_thrust',
@@ -492,7 +496,7 @@ export const EXERCISE_DATABASE: ExerciseDefinition[] = [
     defaultReps: '8-12',
     defaultRestSeconds: 120,
     isCompound: true,
-    fpTypes: ['vigor', 'speed'],
+    fpDistribution: { vigor: 0.8, speed: 0.2 },
   },
   {
     id: 'calf_raises',
@@ -505,7 +509,7 @@ export const EXERCISE_DATABASE: ExerciseDefinition[] = [
     defaultReps: '12-20',
     defaultRestSeconds: 60,
     isCompound: false,
-    fpTypes: ['speed'],
+    fpDistribution: { vigor: 1.0 },
   },
 
   // =========== CORE ===========
@@ -520,7 +524,7 @@ export const EXERCISE_DATABASE: ExerciseDefinition[] = [
     defaultReps: '30-60s',
     defaultRestSeconds: 45,
     isCompound: false,
-    fpTypes: ['vigor'],
+    fpDistribution: { vigor: 1.0 },
   },
   {
     id: 'hanging_leg_raise',
@@ -533,7 +537,7 @@ export const EXERCISE_DATABASE: ExerciseDefinition[] = [
     defaultReps: '10-15',
     defaultRestSeconds: 60,
     isCompound: false,
-    fpTypes: ['vigor'],
+    fpDistribution: { vigor: 1.0 },
   },
   {
     id: 'cable_crunch',
@@ -546,7 +550,7 @@ export const EXERCISE_DATABASE: ExerciseDefinition[] = [
     defaultReps: '12-15',
     defaultRestSeconds: 60,
     isCompound: false,
-    fpTypes: ['vigor'],
+    fpDistribution: { vigor: 1.0 },
   },
   {
     id: 'russian_twist',
@@ -559,7 +563,7 @@ export const EXERCISE_DATABASE: ExerciseDefinition[] = [
     defaultReps: '20-30',
     defaultRestSeconds: 45,
     isCompound: false,
-    fpTypes: ['vigor'],
+    fpDistribution: { vigor: 1.0 },
   },
 
   // =========== HOME GYM EXERCISES (Powerbuilding Home Edition) ===========
@@ -574,7 +578,7 @@ export const EXERCISE_DATABASE: ExerciseDefinition[] = [
     defaultReps: '15 total',
     defaultRestSeconds: 90,
     isCompound: true,
-    fpTypes: ['power', 'focus'],
+    fpDistribution: { power: 0.8, focus: 0.2 },
   },
   {
     id: 'db_overhead_press',
@@ -587,7 +591,7 @@ export const EXERCISE_DATABASE: ExerciseDefinition[] = [
     defaultReps: '15 total',
     defaultRestSeconds: 90,
     isCompound: true,
-    fpTypes: ['power', 'focus'],
+    fpDistribution: { power: 0.8, focus: 0.2 },
   },
   {
     id: 'close_grip_db_floor_press',
@@ -600,7 +604,7 @@ export const EXERCISE_DATABASE: ExerciseDefinition[] = [
     defaultReps: '30 total',
     defaultRestSeconds: 60,
     isCompound: true,
-    fpTypes: ['focus'],
+    fpDistribution: { focus: 1.0 },
   },
   {
     id: 'db_kickbacks',
@@ -613,7 +617,7 @@ export const EXERCISE_DATABASE: ExerciseDefinition[] = [
     defaultReps: '50 total',
     defaultRestSeconds: 30,
     isCompound: false,
-    fpTypes: ['focus'],
+    fpDistribution: { focus: 1.0 },
   },
   {
     id: 'overhead_db_tricep_ext',
@@ -626,7 +630,7 @@ export const EXERCISE_DATABASE: ExerciseDefinition[] = [
     defaultReps: '50 total',
     defaultRestSeconds: 30,
     isCompound: false,
-    fpTypes: ['focus'],
+    fpDistribution: { focus: 1.0 },
   },
   {
     id: 'db_rdl',
@@ -639,7 +643,7 @@ export const EXERCISE_DATABASE: ExerciseDefinition[] = [
     defaultReps: '15 total',
     defaultRestSeconds: 90,
     isCompound: true,
-    fpTypes: ['guard', 'vigor'],
+    fpDistribution: { guard: 0.8, vigor: 0.2 },
   },
   {
     id: 'db_bent_over_row',
@@ -652,7 +656,7 @@ export const EXERCISE_DATABASE: ExerciseDefinition[] = [
     defaultReps: '25 total',
     defaultRestSeconds: 60,
     isCompound: true,
-    fpTypes: ['guard', 'focus'],
+    fpDistribution: { guard: 0.8, focus: 0.2 },
   },
   {
     id: 'incline_db_row',
@@ -665,7 +669,7 @@ export const EXERCISE_DATABASE: ExerciseDefinition[] = [
     defaultReps: '30 total',
     defaultRestSeconds: 60,
     isCompound: true,
-    fpTypes: ['guard'],
+    fpDistribution: { guard: 1.0 },
   },
   {
     id: 'db_shrugs',
@@ -678,7 +682,7 @@ export const EXERCISE_DATABASE: ExerciseDefinition[] = [
     defaultReps: '50 total',
     defaultRestSeconds: 30,
     isCompound: false,
-    fpTypes: ['guard'],
+    fpDistribution: { guard: 1.0 },
   },
   {
     id: 'standing_db_curl',
@@ -691,7 +695,7 @@ export const EXERCISE_DATABASE: ExerciseDefinition[] = [
     defaultReps: '50 total',
     defaultRestSeconds: 30,
     isCompound: false,
-    fpTypes: ['focus'],
+    fpDistribution: { focus: 1.0 },
   },
   {
     id: 'bent_over_db_reverse_fly',
@@ -704,7 +708,7 @@ export const EXERCISE_DATABASE: ExerciseDefinition[] = [
     defaultReps: '50 total',
     defaultRestSeconds: 15,
     isCompound: false,
-    fpTypes: ['focus'],
+    fpDistribution: { focus: 1.0 },
   },
   {
     id: 'db_goblet_squat',
@@ -717,7 +721,7 @@ export const EXERCISE_DATABASE: ExerciseDefinition[] = [
     defaultReps: '15 total',
     defaultRestSeconds: 90,
     isCompound: true,
-    fpTypes: ['speed', 'vigor'],
+    fpDistribution: { speed: 0.8, vigor: 0.2 },
   },
   {
     id: 'db_good_morning',
@@ -730,7 +734,7 @@ export const EXERCISE_DATABASE: ExerciseDefinition[] = [
     defaultReps: '25 total',
     defaultRestSeconds: 60,
     isCompound: true,
-    fpTypes: ['vigor', 'guard'],
+    fpDistribution: { vigor: 0.8, guard: 0.2 },
   },
   {
     id: 'nordic_curl',
@@ -743,7 +747,7 @@ export const EXERCISE_DATABASE: ExerciseDefinition[] = [
     defaultReps: '50 total',
     defaultRestSeconds: 30,
     isCompound: false,
-    fpTypes: ['speed'],
+    fpDistribution: { speed: 1.0 },
   },
   {
     id: 'nordstick_hamstring_curl',
@@ -756,7 +760,7 @@ export const EXERCISE_DATABASE: ExerciseDefinition[] = [
     defaultReps: '50 total',
     defaultRestSeconds: 30,
     isCompound: false,
-    fpTypes: ['speed'],
+    fpDistribution: { speed: 1.0 },
   },
   {
     id: 'db_standing_calf_raise',
@@ -769,7 +773,7 @@ export const EXERCISE_DATABASE: ExerciseDefinition[] = [
     defaultReps: '50 total',
     defaultRestSeconds: 15,
     isCompound: false,
-    fpTypes: ['speed'],
+    fpDistribution: { vigor: 1.0 },
   },
   {
     id: 'db_front_squat',
@@ -782,7 +786,7 @@ export const EXERCISE_DATABASE: ExerciseDefinition[] = [
     defaultReps: '15 total',
     defaultRestSeconds: 90,
     isCompound: true,
-    fpTypes: ['speed', 'vigor'],
+    fpDistribution: { speed: 0.8, vigor: 0.2 },
   },
   {
     id: 'db_hip_thrust',
@@ -795,7 +799,7 @@ export const EXERCISE_DATABASE: ExerciseDefinition[] = [
     defaultReps: '30 total',
     defaultRestSeconds: 60,
     isCompound: true,
-    fpTypes: ['vigor', 'speed'],
+    fpDistribution: { vigor: 0.8, speed: 0.2 },
   },
   {
     id: 'db_lunges',
@@ -808,7 +812,7 @@ export const EXERCISE_DATABASE: ExerciseDefinition[] = [
     defaultReps: '50 total',
     defaultRestSeconds: 30,
     isCompound: true,
-    fpTypes: ['speed', 'vigor'],
+    fpDistribution: { speed: 0.8, vigor: 0.2 },
   },
   {
     id: 'db_sissy_squat',
@@ -821,7 +825,7 @@ export const EXERCISE_DATABASE: ExerciseDefinition[] = [
     defaultReps: '50 total',
     defaultRestSeconds: 30,
     isCompound: false,
-    fpTypes: ['speed'],
+    fpDistribution: { speed: 1.0 },
   },
   {
     id: 'lying_leg_raise',
@@ -834,7 +838,7 @@ export const EXERCISE_DATABASE: ExerciseDefinition[] = [
     defaultReps: '50 total',
     defaultRestSeconds: 15,
     isCompound: false,
-    fpTypes: ['vigor'],
+    fpDistribution: { vigor: 1.0 },
   },
   {
     id: 'db_pullover',
@@ -847,7 +851,7 @@ export const EXERCISE_DATABASE: ExerciseDefinition[] = [
     defaultReps: '30 total',
     defaultRestSeconds: 60,
     isCompound: false,
-    fpTypes: ['guard'],
+    fpDistribution: { guard: 1.0 },
   },
   {
     id: 'one_arm_db_row',
@@ -860,7 +864,7 @@ export const EXERCISE_DATABASE: ExerciseDefinition[] = [
     defaultReps: '50 total',
     defaultRestSeconds: 30,
     isCompound: true,
-    fpTypes: ['guard', 'focus'],
+    fpDistribution: { guard: 0.8, focus: 0.2 },
   },
   {
     id: 'incline_db_curl',
@@ -873,7 +877,7 @@ export const EXERCISE_DATABASE: ExerciseDefinition[] = [
     defaultReps: '50 total',
     defaultRestSeconds: 30,
     isCompound: false,
-    fpTypes: ['focus'],
+    fpDistribution: { focus: 1.0 },
   },
   {
     id: 'prone_incline_reverse_fly',
@@ -886,7 +890,7 @@ export const EXERCISE_DATABASE: ExerciseDefinition[] = [
     defaultReps: '50 total',
     defaultRestSeconds: 15,
     isCompound: false,
-    fpTypes: ['focus'],
+    fpDistribution: { focus: 1.0 },
   },
   {
     id: 'db_stiff_leg_deadlift',
@@ -899,7 +903,7 @@ export const EXERCISE_DATABASE: ExerciseDefinition[] = [
     defaultReps: '15 total',
     defaultRestSeconds: 90,
     isCompound: true,
-    fpTypes: ['guard', 'vigor'],
+    fpDistribution: { guard: 0.8, vigor: 0.2 },
   },
 ];
 
