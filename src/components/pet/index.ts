@@ -19,3 +19,6 @@ export {
   type ShapeConfig,
   type PetShapeGenerator as PetShapeGeneratorType,
 } from './PetShapes';
+
+export { PetSprite } from './PetSprite';
+export { getSprite, hasSpriteSet, type SpriteStage } from './sprites';
