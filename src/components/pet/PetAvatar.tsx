@@ -18,6 +18,8 @@ import Animated, {
 } from 'react-native-reanimated';
 import Svg, { G, Defs, Filter, FeGaussianBlur, Path } from 'react-native-svg';
 import { EVOLUTION_MULTIPLIERS, PetShapeGenerator } from './PetShapes';
+import { PetSprite } from './PetSprite';
+import { getSprite } from './sprites';
 
 // =============================================================================
 // Type Definitions
@@ -47,10 +49,25 @@ export interface PetAvatarProps {
 }
 
 // =============================================================================
-// Main PetAvatar Component
+// Main PetAvatar Component — hybrid dispatcher (ADR-0006)
+// =============================================================================
+// Types with an affirmed sprite column render via PetSprite (AI base art +
+// procedural overlays); the rest keep the Phase 1 procedural renderer until
+// their art lands. Dispatch lives here so every existing call site upgrades
+// automatically when a column is added to the sprite registry.
+
+export function PetAvatar(props: PetAvatarProps) {
+  if (getSprite(props.petType, props.evolutionStage)) {
+    return <PetSprite {...props} />;
+  }
+  return <ProceduralPetAvatar {...props} />;
+}
+
+// =============================================================================
+// Procedural renderer (Phase 1) — fallback for types without sprite columns
 // =============================================================================
 
-export function PetAvatar({
+function ProceduralPetAvatar({
   petType,
   stats,
   evolutionStage,
