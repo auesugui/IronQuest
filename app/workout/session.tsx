@@ -7,6 +7,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { PRFlash } from '@/components/celebration';
 import { SetInputModal } from '@/components/workout/SetInputModal';
 import {
   usePlayerStore,
@@ -355,12 +356,14 @@ export default function WorkoutSessionScreen() {
                 </View>
 
                 {set.logged ? (
-                  <Pressable style={styles.loggedSet} onPress={() => handleEditSet(index)}>
-                    <Text style={styles.loggedReps}>{set.reps} reps</Text>
-                    {set.weight && <Text style={styles.loggedWeight}>@ {set.weight} lb</Text>}
-                    {set.isPR && <Text style={styles.prBadge}>PR!</Text>}
-                    <Text style={styles.editHint}>tap to edit</Text>
-                  </Pressable>
+                  <PRFlash active={set.isPR} style={styles.prFlashWrapper}>
+                    <Pressable style={styles.loggedSet} onPress={() => handleEditSet(index)}>
+                      <Text style={styles.loggedReps}>{set.reps} reps</Text>
+                      {set.weight && <Text style={styles.loggedWeight}>@ {set.weight} lb</Text>}
+                      {set.isPR && <Text style={styles.prBadge}>PR!</Text>}
+                      <Text style={styles.editHint}>tap to edit</Text>
+                    </Pressable>
+                  </PRFlash>
                 ) : (
                   <View style={styles.logButtons}>
                     {[5, 8, 10, 12].map((reps) => (
@@ -603,6 +606,9 @@ const styles = StyleSheet.create({
   weightHint: {
     ...textStyles.caption,
     color: colors.text.muted,
+  },
+  prFlashWrapper: {
+    borderRadius: radius.md,
   },
   loggedSet: {
     flexDirection: 'row',
