@@ -2,7 +2,7 @@
 // IronQuest Weight History Store - Remembers Last Used Weight Per Exercise
 // =============================================================================
 
-import type { ExerciseWeightHistory, WeightHistoryEntry } from '@/types';
+import type { ExerciseWeightHistory, WeightHistoryEntry, WeightUnit } from '@/types';
 import { STORAGE_KEYS, appStorage } from '@/utils/storage';
 import { create } from 'zustand';
 
@@ -16,7 +16,9 @@ interface WeightHistoryState {
 
 interface WeightHistoryActions {
   getLastWeight: (exerciseId: string) => number | null;
-  saveWeight: (exerciseId: string, weight: number) => void;
+  // Unit-aware read: pre-#42 entries default to lb.
+  getLastWeightWithUnit: (exerciseId: string) => { weight: number; unit: WeightUnit } | null;
+  saveWeight: (exerciseId: string, weight: number, unit?: WeightUnit) => void;
   getRecentWeights: (exerciseId: string) => WeightHistoryEntry[];
   clearExerciseHistory: (exerciseId: string) => void;
   clearAllHistory: () => void;
@@ -58,7 +60,16 @@ export const useWeightHistoryStore = create<WeightHistoryStore>((set, get) => ({
     return exerciseHistory?.lastWeight ?? null;
   },
 
-  saveWeight: (exerciseId, weight) => {
+  getLastWeightWithUnit: (exerciseId) => {
+    const exerciseHistory = get().history[exerciseId];
+    if (exerciseHistory?.lastWeight == null) return null;
+    return {
+      weight: exerciseHistory.lastWeight,
+      unit: exerciseHistory.lastUnit ?? 'lb',
+    };
+  },
+
+  saveWeight: (exerciseId, weight, unit = 'lb') => {
     set((state) => {
       const existingHistory = state.history[exerciseId];
       const now = new Date().toISOString();
@@ -67,6 +78,7 @@ export const useWeightHistoryStore = create<WeightHistoryStore>((set, get) => ({
       const newEntry: WeightHistoryEntry = {
         weight,
         timestamp: now,
+        unit,
       };
 
       // Build recent weights array
@@ -82,6 +94,7 @@ export const useWeightHistoryStore = create<WeightHistoryStore>((set, get) => ({
       const updatedHistory: ExerciseWeightHistory = {
         exerciseId,
         lastWeight: weight,
+        lastUnit: unit,
         recentWeights,
         updatedAt: now,
       };

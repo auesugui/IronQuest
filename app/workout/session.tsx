@@ -11,6 +11,7 @@ import { PRFlash } from '@/components/celebration';
 import { SetInputModal } from '@/components/workout/SetInputModal';
 import {
   usePlayerStore,
+  useSettingsStore,
   useWeightHistoryStore,
   useWorkoutHistoryStore,
   useWorkoutStore,
@@ -91,7 +92,16 @@ export default function WorkoutSessionScreen() {
   const currentWeight = useWeightHistoryStore(
     (state) => state.history[currentExercise.id]?.lastWeight ?? null
   );
+  // Pre-#42 history has no unit recorded — it was all logged in lb.
+  const currentWeightUnit = useWeightHistoryStore(
+    (state) => state.history[currentExercise.id]?.lastUnit ?? 'lb'
+  );
+  const units = useSettingsStore((state) => state.units);
   const hasWeight = currentWeight !== null && currentWeight > 0;
+  // Only auto-fill quick-taps when the remembered weight was logged in the
+  // CURRENT unit — silently reusing "135" across a lb→kg switch would log a
+  // wildly different real-world load. No conversion (issue #42).
+  const weightUnitMatches = currentWeightUnit === units;
 
   // Quick log from preset buttons.
   //
@@ -110,7 +120,7 @@ export default function WorkoutSessionScreen() {
     if (!currentExercise) return;
 
     const lastWeight = getLastWeight(currentExercise.id);
-    const quickWeight = lastWeight && lastWeight > 0 ? lastWeight : undefined;
+    const quickWeight = lastWeight && lastWeight > 0 && weightUnitMatches ? lastWeight : undefined;
 
     haptics.success();
     logSet(currentExerciseIndex, setIndex, reps, quickWeight);
@@ -250,7 +260,11 @@ export default function WorkoutSessionScreen() {
 
   // Get the exercise being edited to retrieve suggested weight from history
   const editingExercise = exercises[setEdit.exerciseIndex];
-  const suggestedWeight = editingExercise ? getLastWeight(editingExercise.id) : null;
+  const editingLastUnit = editingExercise
+    ? (useWeightHistoryStore.getState().history[editingExercise.id]?.lastUnit ?? 'lb')
+    : 'lb';
+  const suggestedWeight =
+    editingExercise && editingLastUnit === units ? getLastWeight(editingExercise.id) : null;
 
   if (!active || !currentExercise) {
     return (
@@ -349,7 +363,9 @@ export default function WorkoutSessionScreen() {
                   {!set.logged && (
                     <Text style={styles.weightHint}>
                       {hasWeight
-                        ? `@ ${currentWeight} lb · tap ... to change`
+                        ? weightUnitMatches
+                          ? `@ ${currentWeight} ${currentWeightUnit} · tap ... to change`
+                          : `last: ${currentWeight} ${currentWeightUnit} · tap ... to set ${units}`
                         : 'no weight · tap ... to set'}
                     </Text>
                   )}
@@ -359,7 +375,11 @@ export default function WorkoutSessionScreen() {
                   <PRFlash active={set.isPR} style={styles.prFlashWrapper}>
                     <Pressable style={styles.loggedSet} onPress={() => handleEditSet(index)}>
                       <Text style={styles.loggedReps}>{set.reps} reps</Text>
-                      {set.weight && <Text style={styles.loggedWeight}>@ {set.weight} lb</Text>}
+                      {set.weight && (
+                        <Text style={styles.loggedWeight}>
+                          @ {set.weight} {units}
+                        </Text>
+                      )}
                       {set.isPR && <Text style={styles.prBadge}>PR!</Text>}
                       <Text style={styles.editHint}>tap to edit</Text>
                     </Pressable>

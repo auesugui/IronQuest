@@ -6,6 +6,7 @@ import type { Exercise, SessionIntent } from '@/types';
 import { STORAGE_KEYS, appStorage } from '@/utils/storage';
 import { create } from 'zustand';
 import { usePRStore } from './prStore';
+import { useSettingsStore } from './settingsStore';
 import { useWeightHistoryStore } from './weightHistoryStore';
 
 // -----------------------------------------------------------------------------
@@ -145,7 +146,9 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
       let isRepPR = false;
 
       if (weight !== undefined && weight !== null && weight > 0 && exercise.id) {
-        const prResult = usePRStore.getState().recordPR(exercise.id, weight, reps);
+        // PRs compare within the unit the set was logged in (issue #42).
+        const unit = useSettingsStore.getState().units;
+        const prResult = usePRStore.getState().recordPR(exercise.id, weight, reps, unit);
         isPR = prResult.isWeightPR;
         isRepPR = prResult.isRepPR;
       }
@@ -168,7 +171,9 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
       if (weight !== undefined && weight !== null) {
         const exerciseData = state.exercises[exerciseIndex];
         if (exerciseData?.id) {
-          useWeightHistoryStore.getState().saveWeight(exerciseData.id, weight);
+          useWeightHistoryStore
+            .getState()
+            .saveWeight(exerciseData.id, weight, useSettingsStore.getState().units);
         }
       }
 
@@ -201,7 +206,9 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
       if (weight !== undefined && weight !== null) {
         const exerciseData = state.exercises[exerciseIndex];
         if (exerciseData?.id) {
-          useWeightHistoryStore.getState().saveWeight(exerciseData.id, weight);
+          useWeightHistoryStore
+            .getState()
+            .saveWeight(exerciseData.id, weight, useSettingsStore.getState().units);
         }
       }
 

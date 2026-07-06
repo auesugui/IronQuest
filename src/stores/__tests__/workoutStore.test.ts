@@ -417,7 +417,7 @@ describe('Workout Store', () => {
         const { logSet } = useWorkoutStore.getState();
         logSet(0, 0, 10, 135);
 
-        expect(mockSaveWeight).toHaveBeenCalledWith('bench-press', 135);
+        expect(mockSaveWeight).toHaveBeenCalledWith('bench-press', 135, 'lb');
       });
 
       it('should not save weight to history when weight is null', () => {
@@ -462,7 +462,7 @@ describe('Workout Store', () => {
         const { editSet } = useWorkoutStore.getState();
         editSet(0, 0, 10, 145);
 
-        expect(mockSaveWeight).toHaveBeenCalledWith('bench-press', 145);
+        expect(mockSaveWeight).toHaveBeenCalledWith('bench-press', 145, 'lb');
       });
 
       it('should not save weight to history when edited weight is undefined', () => {
