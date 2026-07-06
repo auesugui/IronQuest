@@ -285,21 +285,17 @@ test.describe('Stat Persistence - No Initial State', () => {
     await page.waitForLoadState('networkidle');
     await page.waitForTimeout(2000);
 
-    // App should still load - use role-based selector
-    const denTab = page.getByRole('tab', { name: 'The Den' });
-    await expect(denTab).toBeVisible({ timeout: 15000 });
+    // Since the Phase 2 onboarding flow (issue #33), a fresh app routes to the
+    // type-selection wizard instead of the tab navigator.
+    const onboardingTitle = page.locator('text=Choose your companion').first();
+    await expect(onboardingTitle).toBeVisible({ timeout: 15000 });
 
-    // Navigate to Den
-    await denTab.click();
-    await page.waitForTimeout(500);
-
-    // Stats section should be visible with default values
-    const statsSection = page.locator('text=Stats').first();
-    await expect(statsSection).toBeVisible({ timeout: 10000 });
-
-    // All stats should be at 0 for fresh pet (or pet should need initialization)
-    const statValues = await page.locator('text=/^\\d+$/').allTextContents();
-    console.log('Stat values:', statValues);
+    // All three type options should be selectable
+    for (const typeName of ['Ferro', 'Flux', 'Terra']) {
+      await expect(
+        page.getByRole('button', { name: `Select ${typeName} type` })
+      ).toBeVisible({ timeout: 10000 });
+    }
 
     // App should not crash
     const errorText = page.locator('text=/error|failed|exception/i');
