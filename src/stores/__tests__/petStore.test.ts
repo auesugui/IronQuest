@@ -337,57 +337,7 @@ describe('Pet Store', () => {
         expect(usePetStore.getState().totalFPEarned).toBe(100);
       });
 
-      it('should evolve to stage 2 at 500 FP', () => {
-        const { addFP } = usePetStore.getState();
-
-        addFP(500);
-
-        expect(usePetStore.getState().evolutionStage).toBe(2);
-      });
-
-      it('should evolve to stage 3 at 2000 FP', () => {
-        const { addFP } = usePetStore.getState();
-
-        addFP(2000);
-
-        expect(usePetStore.getState().evolutionStage).toBe(3);
-      });
-
-      it('should evolve to stage 4 at 5000 FP', () => {
-        const { addFP } = usePetStore.getState();
-
-        addFP(5000);
-
-        expect(usePetStore.getState().evolutionStage).toBe(4);
-      });
-
-      it('should not evolve past stage 4', () => {
-        const { addFP } = usePetStore.getState();
-
-        addFP(10000);
-
-        expect(usePetStore.getState().evolutionStage).toBe(4);
-      });
-
-      it('should persist evolution progress', () => {
-        const { addFP } = usePetStore.getState();
-
-        addFP(500);
-
-        expect(appStorage.setJSON).toHaveBeenCalled();
-      });
-    });
-
-    describe('evolution thresholds', () => {
-      it('should be stage 1 from 0-499 FP', () => {
-        const { addFP } = usePetStore.getState();
-
-        addFP(499);
-
-        expect(usePetStore.getState().evolutionStage).toBe(1);
-      });
-
-      it('should be stage 2 from 500-1999 FP', () => {
+      it('should evolve to stage 2 at 1000 FP', () => {
         const { addFP } = usePetStore.getState();
 
         addFP(1000);
@@ -395,18 +345,79 @@ describe('Pet Store', () => {
         expect(usePetStore.getState().evolutionStage).toBe(2);
       });
 
-      it('should be stage 3 from 2000-4999 FP', () => {
+      it('should evolve to stage 3 at 6000 FP', () => {
         const { addFP } = usePetStore.getState();
 
-        addFP(3000);
+        addFP(6000);
 
         expect(usePetStore.getState().evolutionStage).toBe(3);
       });
 
-      it('should be stage 4 at 5000+ FP', () => {
+      it('should evolve to stage 4 at 20000 FP', () => {
         const { addFP } = usePetStore.getState();
 
-        addFP(5000);
+        addFP(20000);
+
+        expect(usePetStore.getState().evolutionStage).toBe(4);
+      });
+
+      it('should not evolve past stage 4', () => {
+        const { addFP } = usePetStore.getState();
+
+        addFP(50000);
+
+        expect(usePetStore.getState().evolutionStage).toBe(4);
+      });
+
+      it('should persist evolution progress', () => {
+        const { addFP } = usePetStore.getState();
+
+        addFP(1000);
+
+        expect(appStorage.setJSON).toHaveBeenCalled();
+      });
+
+      it('never demotes a stage already reached, even if thresholds rise', () => {
+        // A pet that evolved under older (lower) thresholds keeps its stage —
+        // "No Punishment for Absence" extends to economy retuning.
+        usePetStore.setState({ totalFPEarned: 600, evolutionStage: 2 });
+        const { addFP } = usePetStore.getState();
+
+        addFP(10); // recomputes stage from FP (610 → derived stage 1)
+
+        expect(usePetStore.getState().evolutionStage).toBe(2);
+      });
+    });
+
+    describe('evolution thresholds', () => {
+      it('should be stage 1 from 0-999 FP', () => {
+        const { addFP } = usePetStore.getState();
+
+        addFP(999);
+
+        expect(usePetStore.getState().evolutionStage).toBe(1);
+      });
+
+      it('should be stage 2 from 1000-5999 FP', () => {
+        const { addFP } = usePetStore.getState();
+
+        addFP(3000);
+
+        expect(usePetStore.getState().evolutionStage).toBe(2);
+      });
+
+      it('should be stage 3 from 6000-19999 FP', () => {
+        const { addFP } = usePetStore.getState();
+
+        addFP(12000);
+
+        expect(usePetStore.getState().evolutionStage).toBe(3);
+      });
+
+      it('should be stage 4 at 20000+ FP', () => {
+        const { addFP } = usePetStore.getState();
+
+        addFP(20000);
 
         expect(usePetStore.getState().evolutionStage).toBe(4);
       });
@@ -608,7 +619,7 @@ describe('Pet Store', () => {
         // Set totalFPEarned directly to the next threshold without triggering
         // auto-evolution (addFP would move past the threshold and evolve the
         // pet, making selectCanEvolve return false for the NEXT stage).
-        usePetStore.setState({ totalFPEarned: 500, evolutionStage: 1 });
+        usePetStore.setState({ totalFPEarned: 1000, evolutionStage: 1 });
         const state = usePetStore.getState();
         const canEvolve = selectCanEvolve(state);
 
@@ -618,7 +629,7 @@ describe('Pet Store', () => {
       it('should return false at max evolution', () => {
         const { addFP } = usePetStore.getState();
 
-        addFP(5000);
+        addFP(20000);
         const state = usePetStore.getState();
         const canEvolve = selectCanEvolve(state);
 
