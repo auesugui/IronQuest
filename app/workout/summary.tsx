@@ -8,10 +8,12 @@
 // the already-claimed log from storage, so a second "claim" is a no-op.
 
 import { router, useLocalSearchParams } from 'expo-router';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { CountUpText, EvolutionCeremony, RevealRow } from '@/components/celebration';
+import { RadarChart } from '@/components/progress/RadarChart';
 import { type WorkoutSummary, calculateWorkoutSummary } from '@/lib/workout-summary';
 import {
   useBaselineStore,
@@ -22,6 +24,9 @@ import {
 } from '@/stores';
 import { colors, radius, spacing, textStyles } from '@/theme';
 import { haptics } from '@/utils/haptics';
+
+// Streak milestones celebrated by the docs' streak system (fp-earning.md).
+const STREAK_MILESTONES = [3, 7, 14, 30];
 
 export default function WorkoutSummaryScreen() {
   const insets = useSafeAreaInsets();
@@ -35,6 +40,12 @@ export default function WorkoutSummaryScreen() {
     workoutId ? s.logs.find((l) => l.id === workoutId) : undefined
   );
   const hydrated = useWorkoutHistoryStore((s) => s.hydrated);
+
+  // Post-claim UI state: swaps the footer to "Visit the Den / Done" and, when
+  // the claim crossed an evolution threshold, runs the major-tier ceremony
+  // (issue #40 — evolution must never be a silent text flip / audit A7).
+  const [justClaimed, setJustClaimed] = useState(false);
+  const [evolvedTo, setEvolvedTo] = useState<1 | 2 | 3 | 4 | null>(null);
 
   const summary: WorkoutSummary | null = useMemo(() => {
     if (!log) return null;
@@ -57,6 +68,15 @@ export default function WorkoutSummaryScreen() {
     );
   }, [log]);
 
+  // Normalize typed FP to the radar's 0-100 scale (top type ≈ 85 so the
+  // shape reads without touching the chart edge).
+  const radarValues = useMemo(() => {
+    if (!summary) return {};
+    const entries = Object.entries(summary.typedFP).filter(([k]) => k !== 'generic');
+    const max = Math.max(1, ...entries.map(([, v]) => v ?? 0));
+    return Object.fromEntries(entries.map(([k, v]) => [k, ((v ?? 0) / max) * 85]));
+  }, [summary]);
+
   const handleFinish = () => {
     if (!summary || !log) return;
 
@@ -73,8 +93,11 @@ export default function WorkoutSummaryScreen() {
     // Add typed FP to player balance (distributed by muscle groups + Spirit)
     usePlayerStore.getState().addMultipleFP(summary.typedFP);
 
-    // Add to pet's total FP earned (for evolution)
+    // Add to pet's total FP earned (for evolution) — capturing the stage on
+    // both sides so a threshold crossing triggers the ceremony.
+    const stageBefore = usePetStore.getState().evolutionStage;
     usePetStore.getState().addFP(summary.totalFP);
+    const stageAfter = usePetStore.getState().evolutionStage;
 
     // Update streak
     usePlayerStore.getState().updateStreak(true);
@@ -95,9 +118,13 @@ export default function WorkoutSummaryScreen() {
       if (sessionMax > 0) baselineStore.recordSession(ex.id, sessionMax);
     }
 
-    // End the session and go home
+    // End the session; the log is already persisted in history. Stay on the
+    // summary — the UX spec wants a deliberate next action, not an auto-exit.
     useWorkoutStore.getState().endSession();
-    router.replace('/(tabs)');
+    setJustClaimed(true);
+    if (stageAfter > stageBefore) {
+      setEvolvedTo(stageAfter);
+    }
   };
 
   const formatDuration = (seconds: number) => {
@@ -152,7 +179,7 @@ export default function WorkoutSummaryScreen() {
         {/* FP Earned Card */}
         <View style={styles.fpCard}>
           <Text style={styles.fpLabel}>Forge Points Earned</Text>
-          <Text style={styles.fpValue}>{summary.totalFP}</Text>
+          <CountUpText value={summary.totalFP} style={styles.fpValue} />
           <Text style={styles.fpUnit}>FP</Text>
         </View>
 
@@ -160,36 +187,52 @@ export default function WorkoutSummaryScreen() {
         <View style={styles.breakdownCard}>
           <Text style={styles.breakdownTitle}>Breakdown</Text>
 
-          <View style={styles.breakdownRow}>
+          <RevealRow index={0} style={styles.breakdownRow}>
             <Text style={styles.breakdownLabel}>Base completion</Text>
             <Text style={styles.breakdownValue}>{summary.breakdown.base} FP</Text>
-          </View>
+          </RevealRow>
 
-          <View style={styles.breakdownRow}>
+          <RevealRow index={1} style={styles.breakdownRow}>
             <Text style={styles.breakdownLabel}>Volume bonus</Text>
             <Text style={styles.breakdownValue}>+{summary.breakdown.volumeBonus} FP</Text>
-          </View>
+          </RevealRow>
 
-          <View style={styles.breakdownRow}>
+          <RevealRow index={2} style={styles.breakdownRow}>
             <Text style={styles.breakdownLabel}>PR bonuses</Text>
             <Text style={styles.breakdownValue}>+{summary.breakdown.prBonus} FP</Text>
-          </View>
+          </RevealRow>
 
           {summary.breakdown.streakMultiplier > 1 && (
-            <View style={styles.breakdownRow}>
+            <RevealRow index={3} style={styles.breakdownRow}>
               <Text style={styles.breakdownLabel}>Streak multiplier</Text>
               <Text style={styles.breakdownValueHighlight}>
                 x{summary.breakdown.streakMultiplier.toFixed(1)}
               </Text>
-            </View>
+            </RevealRow>
           )}
 
           {summary.spiritFP > 0 && (
-            <View style={styles.breakdownRow}>
+            <RevealRow index={4} style={styles.breakdownRow}>
               <Text style={styles.breakdownLabel}>Spirit (streak bonus)</Text>
               <Text style={styles.breakdownValueHighlight}>+{summary.spiritFP} Spirit FP</Text>
-            </View>
+            </RevealRow>
           )}
+        </View>
+
+        {/* Typed-FP radar — the "what did this build" picture (UX spec) */}
+        <View style={styles.radarCard}>
+          <Text style={styles.breakdownTitle}>FP by Type</Text>
+          <View style={styles.radarWrapper}>
+            <RadarChart values={radarValues} size={180} showLabels={true} />
+          </View>
+        </View>
+
+        {/* Streak state + milestone celebration */}
+        <View style={styles.streakCard}>
+          <Text style={styles.streakText}>
+            🔥 {log.streakDays} day streak
+            {STREAK_MILESTONES.includes(log.streakDays) ? ' — milestone!' : ''}
+          </Text>
         </View>
 
         {/* Stats */}
@@ -241,18 +284,54 @@ export default function WorkoutSummaryScreen() {
         </View>
       </ScrollView>
 
-      {/* Finish Button */}
+      {/* Footer: claim first, then a deliberate next action (UX spec — no
+          auto-exit from the game layer's most important screen) */}
       <View style={[styles.footer, { paddingBottom: insets.bottom + spacing[4] }]}>
-        <Pressable
-          style={[styles.finishButton, alreadyClaimed && styles.finishButtonClaimed]}
-          onPress={handleFinish}
-          disabled={alreadyClaimed}
-        >
-          <Text style={styles.finishButtonText}>
-            {alreadyClaimed ? 'Rewards Claimed' : 'Claim Rewards'}
-          </Text>
-        </Pressable>
+        {justClaimed ? (
+          <View style={styles.postClaimRow}>
+            <Pressable
+              style={styles.denButton}
+              onPress={() => router.replace('/(tabs)/den')}
+              accessibilityRole="button"
+              accessibilityLabel="Visit the Den"
+            >
+              <Text style={styles.finishButtonText}>Visit the Den</Text>
+            </Pressable>
+            <Pressable
+              style={styles.doneButton}
+              onPress={() => router.replace('/(tabs)')}
+              accessibilityRole="button"
+              accessibilityLabel="Done"
+            >
+              <Text style={styles.doneButtonText}>Done</Text>
+            </Pressable>
+          </View>
+        ) : (
+          <Pressable
+            style={[styles.finishButton, alreadyClaimed && styles.finishButtonClaimed]}
+            onPress={handleFinish}
+            disabled={alreadyClaimed}
+          >
+            <Text style={styles.finishButtonText}>
+              {alreadyClaimed ? 'Rewards Claimed' : 'Claim Rewards'}
+            </Text>
+          </Pressable>
+        )}
       </View>
+
+      {/* Major-tier ceremony: crossing an evolution threshold is held, named,
+          and remembered — never a toast (avatar brief §6, Zelda reveal). */}
+      <EvolutionCeremony
+        visible={evolvedTo !== null}
+        petType={usePetStore.getState().type}
+        petName={usePetStore.getState().name}
+        stats={usePetStore.getState().stats}
+        newStage={evolvedTo ?? 1}
+        onDone={() => {
+          setEvolvedTo(null);
+          router.replace('/(tabs)/den');
+        }}
+      />
     </View>
   );
 }
@@ -435,6 +514,48 @@ const styles = StyleSheet.create({
   },
   finishButtonClaimed: {
     backgroundColor: colors.background.tertiary,
+  },
+  postClaimRow: {
+    flexDirection: 'row',
+    gap: spacing[3],
+  },
+  denButton: {
+    flex: 2,
+    backgroundColor: colors.reward.fp,
+    borderRadius: radius.lg,
+    paddingVertical: spacing[4],
+    alignItems: 'center',
+  },
+  doneButton: {
+    flex: 1,
+    backgroundColor: colors.background.secondary,
+    borderRadius: radius.lg,
+    paddingVertical: spacing[4],
+    alignItems: 'center',
+  },
+  doneButtonText: {
+    ...textStyles.buttonLarge,
+    color: colors.text.primary,
+  },
+  radarCard: {
+    backgroundColor: colors.background.secondary,
+    borderRadius: radius.lg,
+    padding: spacing[4],
+    marginBottom: spacing[4],
+  },
+  radarWrapper: {
+    alignItems: 'center',
+  },
+  streakCard: {
+    backgroundColor: colors.background.secondary,
+    borderRadius: radius.lg,
+    padding: spacing[4],
+    marginBottom: spacing[4],
+    alignItems: 'center',
+  },
+  streakText: {
+    ...textStyles.h4,
+    color: colors.reward.streak,
   },
   finishButtonText: {
     ...textStyles.buttonLarge,
