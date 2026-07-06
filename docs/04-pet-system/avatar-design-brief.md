@@ -1,12 +1,13 @@
 # Avatar Design Brief — Making a Pet Worth Caring About
 
-> **Status:** Living doc, co-authored. Phase 2 item 9 (avatar identity pass).
+> **Status:** STABLE (Rev 6) — all blocking questions answered; governs the production asset run. Phase 2 item 9 (avatar identity pass).
 > **Maturity legend:** ✅ AFFIRMED (Adrian confirmed) · 🟡 DRAFT (my hypothesis, react to it) · 🔴 OPEN (needs Adrian's input)
 > **Origin:** Born from the 2026-07-04 design deep-dive. Supersedes the procedural-only framing of Phase 1; operationalizes ADR-0006 (hybrid rendering).
 > **Rev 2:** 2026-07-04 — Adrian answered §11 questions; sections 2/3/4/6/7/10 updated; new questions raised (see §11).
 > **Rev 3:** 2026-07-05 — Zelda ceremony tiers + WoW rarity channel folded into §6/§8.
 > **Rev 4:** 2026-07-06 — §8.1 gender-neutral construction rules pinned to concrete tests (answers §11 Q2); §8.2 Stage-2 Flux reference illustration spec added; first reference generations run against it.
 > **Rev 5:** 2026-07-06 — **v4 affirmed by Adrian.** §8/§8.1/§8.2/§8.3 graduate to ✅; v4 is the style anchor for the production 12. ADR-0009.
+> **Rev 6:** 2026-07-06 — §11 Q1/Q3/Q4 answered by Adrian: 6 gear slots + rarity channel confirmed; thresholds raised to 1000/6000/20000 (curved); #41 closed, tap-reaction folds into #40. Doc exits DRAFT.
 
 ---
 
@@ -209,21 +210,19 @@ What we explicitly refuse. Rev 2 additions in bold.
 
 ---
 
-## 11. Open questions (Rev 2)
+## 11. Open questions — all answered as of Rev 6
 
-Graduated to ✅ in Rev 2: persona (§2), hunger/mood dropped (§4), references (§6), evolution arc (§7), anti-patterns (§10).
+Graduated ✅ in Rev 2: persona (§2), hunger/mood dropped (§4), references (§6), evolution arc (§7), anti-patterns (§10). Graduated ✅ in Rev 4–6: everything below. Only Q5 (Stage 1 tone) stays open as a *prompt-crafting* concern for the production run — it is not a doc blocker.
 
-**New questions raised by those answers:**
+1. **Gear slot taxonomy — ✅ ANSWERED (Rev 6):** all 6 stat slots confirmed (Power spikes, Guard plate, Speed streamlines, Vigor gem, Focus crest, Spirit aura) **with** the rarity tier colors as a second visual channel (Common→Legendary, WoW colors, encoded as glow separate from stat fill).
 
-1. **Gear slot taxonomy (from §6/§8) — refined by rarity system:** gear is a **stat × rarity matrix**. Slot = which stat (6 candidates: Power spikes, Guard plate, Speed streamlines, Vigor gem, Focus crest, Spirit aura). Rarity = achievement tier (Common→Legendary via WoW color system, encoded as glow). **🔴 Confirm:** the 6 stat slots + adopt the rarity tier colors as a second visual channel?
+2. **Gender-neutral design constraints — ✅ ANSWERED (Rev 4/5):** pinned in §8.1 (zone-by-zone rules + the Lucario test), affirmed via the v4 reference (ADR-0009).
 
-2. **Gender-neutral design constraints (from §10):** ~~what specific art-direction rules keep the base neutral?~~ **Pinned in Rev 4 — see §8.1** (zone-by-zone rules + the Lucario test). 🟡 until Adrian reacts to the reference illustration generated against them.
+3. **Evolution thresholds — ✅ ANSWERED (Rev 6):** raised to a curved **1000 / 6000 / 20000 FP**. Stage 2 lands at ~2–2.5 weeks (inside the §2 habit-formation window), Stage 3 ~3–4 months, Stage 4 ~10–12 months. Early encouragement preserved; the apex is earned considerably. Implemented in `src/config/fp-values.ts`.
 
-3. **Evolution thresholds (from §7):** are 500/2000/5000 FP too fast for "earned considerably"? At ~100 FP/workout, Stage 2 = ~1 week. Should we raise 5–10×? This is a game-economy decision that affects feel. Connects to `src/config/fp-values.ts`.
+4. **Ticket #41 disposition — ✅ ANSWERED (Rev 6):** option (a) — #41 closed; tap-reaction rolls into #40 (celebration layer) as part of its animation vocabulary. The §10 gender concern is addressed at the root by §8.1's neutral base rules; personalization remains a possible future feature, not v1 scope.
 
-4. **Ticket #41 disposition (from §4):** mood/food/vacation all dropped. Options: (a) close #41, roll "tap reaction" into #40 (celebration); (b) repurpose #41 to "personalization v0" — a basic character-customization path addressing §10's gender-sensitivity concern (let user pick aesthetic traits within type constraints). (b) is more ambitious but directly addresses a real user concern.
-
-5. **Newer-lifter Stage 1 tone (from §2):** how does the Stage 1 pet read to someone who's never lifted? Needs to feel promising, not pathetic or empty. Affects the Stage 1 illustration prompt specifically.
+5. **Newer-lifter Stage 1 tone (from §2) — 🟡 carried to the production run:** how does the Stage 1 pet read to someone who's never lifted? Needs to feel promising, not pathetic or empty ("this is the beginning of something," §7). Resolved at prompt-time for the Stage-1 generations, evaluated against §2 on the result.
 
 ---
 
