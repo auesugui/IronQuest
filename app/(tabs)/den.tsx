@@ -2,6 +2,7 @@
 // IronQuest The Den Tab - Pet Care & Stat Upgrades
 // =============================================================================
 
+import { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import Animated, {
   useAnimatedStyle,
@@ -13,6 +14,7 @@ import Animated, {
 
 import { CELEBRATION } from '@/components/celebration';
 import { PetAvatar } from '@/components/pet';
+import { ShareCardModal } from '@/components/share';
 import { selectTotalFP, usePetStore, usePlayerStore, useSettingsStore } from '@/stores';
 import { colors, radius, spacing, textStyles } from '@/theme';
 import type { StatType } from '@/types';
@@ -39,6 +41,11 @@ export default function DenScreen() {
   const hunger = usePetStore((state) => state.hunger);
   const petType = usePetStore((state) => state.type);
   const petName = usePetStore((state) => state.name);
+
+  // Share card (Phase 2 — promoted from Phase 3)
+  const [shareVisible, setShareVisible] = useState(false);
+  const streakDays = usePlayerStore((state) => state.streak.current);
+  const totalWorkouts = usePlayerStore((state) => state.totalWorkouts);
 
   // Tap reaction: quick squash-and-settle spring. Reduced motion keeps the
   // haptic acknowledgment but skips the movement.
@@ -183,6 +190,14 @@ export default function DenScreen() {
         </Pressable>
         <Text style={styles.petName}>{petName || 'Your Pet'}</Text>
         <Text style={styles.petType}>{petType} Type</Text>
+        <Pressable
+          style={styles.shareButton}
+          onPress={() => setShareVisible(true)}
+          accessibilityRole="button"
+          accessibilityLabel="Share your pet card"
+        >
+          <Text style={styles.shareButtonText}>Share Card</Text>
+        </Pressable>
       </View>
 
       {/* Evolution Progress */}
@@ -300,6 +315,18 @@ export default function DenScreen() {
           <FPRow label="Spirit" value={fp.spirit} color={colors.stats.spirit} />
         </View>
       </View>
+
+      <ShareCardModal
+        visible={shareVisible}
+        onClose={() => setShareVisible(false)}
+        petType={petType}
+        petName={petName}
+        stats={stats}
+        evolutionStage={evolutionStage}
+        streakDays={streakDays}
+        totalWorkouts={totalWorkouts}
+        totalFPEarned={totalFPEarned}
+      />
     </ScrollView>
   );
 }
@@ -410,6 +437,17 @@ const styles = StyleSheet.create({
   petName: {
     ...textStyles.h3,
     color: colors.text.primary,
+  },
+  shareButton: {
+    marginTop: spacing[3],
+    backgroundColor: colors.background.secondary,
+    borderRadius: radius.md,
+    paddingVertical: spacing[2],
+    paddingHorizontal: spacing[4],
+  },
+  shareButtonText: {
+    ...textStyles.button,
+    color: colors.reward.fp,
   },
   petType: {
     ...textStyles.body,
