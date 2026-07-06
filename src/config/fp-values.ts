@@ -72,7 +72,11 @@ export const FP_CONFIG = {
   evolution: {
     baseEvoXP: 10, // Per workout
     evoXPPerFP: 50, // 1 EvoXP per 50 FP earned
-    thresholds: [0, 500, 2000, 5000], // Shard, Form, Prime, Apex
+    // Shard, Form, Prime, Apex — curved so Stage 2 lands inside the ~2-week
+    // habit-formation window while Prime/Apex stay "earned considerably"
+    // (avatar brief §7/§11 Q3, affirmed 2026-07-06). At ~100 FP/workout:
+    // Stage 2 ≈ 2-2.5 wks, Stage 3 ≈ 3-4 months, Stage 4 ≈ 10-12 months.
+    thresholds: [0, 1000, 6000, 20000],
     abilitySlots: [1, 2, 3, 4], // Per evolution stage
   },
 
