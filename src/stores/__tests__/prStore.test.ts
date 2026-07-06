@@ -40,7 +40,7 @@ describe('PR Store', () => {
       expect(result.isWeightPR).toBe(true);
       expect(result.isRepPR).toBe(true);
 
-      const record = usePRStore.getState().records['bench-press'];
+      const record = usePRStore.getState().records['bench-press::lb'];
       expect(record).toBeDefined();
       expect(record?.maxWeight).toBe(135);
       expect(record?.maxRepsAtWeight[135]).toBe(10);
@@ -58,7 +58,7 @@ describe('PR Store', () => {
       expect(result.isWeightPR).toBe(true);
       expect(result.isRepPR).toBe(true);
 
-      const record = usePRStore.getState().records['bench-press'];
+      const record = usePRStore.getState().records['bench-press::lb'];
       expect(record?.maxWeight).toBe(155);
     });
 
@@ -74,7 +74,7 @@ describe('PR Store', () => {
       expect(result.isWeightPR).toBe(false); // Same weight
       expect(result.isRepPR).toBe(true); // More reps
 
-      const record = usePRStore.getState().records['bench-press'];
+      const record = usePRStore.getState().records['bench-press::lb'];
       expect(record?.maxRepsAtWeight[135]).toBe(12);
     });
 
@@ -101,8 +101,8 @@ describe('PR Store', () => {
       expect(result2.isWeightPR).toBe(true);
 
       const records = usePRStore.getState().records;
-      expect(records['bench-press']?.maxWeight).toBe(135);
-      expect(records.squat?.maxWeight).toBe(225);
+      expect(records['bench-press::lb']?.maxWeight).toBe(135);
+      expect(records['squat::lb']?.maxWeight).toBe(225);
     });
 
     it('should persist PR state after recording', () => {
@@ -244,5 +244,71 @@ describe('PR Store', () => {
       expect(Object.keys(state.records)).toHaveLength(0);
       expect(state.totalPRCount).toBe(0);
     });
+  });
+});
+
+// -----------------------------------------------------------------------------
+// Unit-aware PRs (issue #42)
+// -----------------------------------------------------------------------------
+
+describe('unit-aware PR tracking (issue #42)', () => {
+  beforeEach(() => {
+    usePRStore.getState().clearAll();
+  });
+
+  it('tracks lb and kg records for the same exercise independently', () => {
+    const store = usePRStore.getState();
+
+    store.recordPR('bench', 135, 5, 'lb');
+    // 100 kg is heavier in the real world, but it must be a FIRST record in
+    // the kg lane, not a comparison against the 135 lb record.
+    const kgResult = store.recordPR('bench', 100, 5, 'kg');
+    expect(kgResult.isWeightPR).toBe(true);
+
+    expect(usePRStore.getState().getExercisePR('bench', 'lb')?.maxWeight).toBe(135);
+    expect(usePRStore.getState().getExercisePR('bench', 'kg')?.maxWeight).toBe(100);
+  });
+
+  it('never treats a kg number as beating an lb record', () => {
+    const store = usePRStore.getState();
+
+    store.recordPR('squat', 225, 5, 'lb');
+    store.recordPR('squat', 60, 5, 'kg');
+
+    // A later, heavier kg set must not touch the lb record.
+    const check = usePRStore.getState().checkPR('squat', 226, 1, 'kg');
+    expect(check.isWeightPR).toBe(true); // vs the 60 kg record
+    expect(usePRStore.getState().getExercisePR('squat', 'lb')?.maxWeight).toBe(225);
+  });
+
+  it('defaults to lb when no unit passed (pre-#42 call sites)', () => {
+    const store = usePRStore.getState();
+    store.recordPR('row', 100, 8);
+    expect(usePRStore.getState().getExercisePR('row')?.unit).toBe('lb');
+  });
+
+  it('migrates legacy bare-exerciseId records to the lb lane on hydrate', async () => {
+    const legacy = {
+      records: {
+        deadlift: {
+          exerciseId: 'deadlift',
+          maxWeight: 315,
+          maxWeightDate: '2026-06-01T00:00:00.000Z',
+          maxRepsAtWeight: { 315: 3 },
+          maxRepsDate: '2026-06-01T00:00:00.000Z',
+          totalPRs: 4,
+        },
+      },
+      recentPRs: [],
+      totalPRCount: 4,
+    };
+    (appStorage.getJSON as jest.Mock).mockResolvedValueOnce(legacy);
+
+    await usePRStore.getState().hydrate();
+
+    const migrated = usePRStore.getState().getExercisePR('deadlift', 'lb');
+    expect(migrated?.maxWeight).toBe(315);
+    expect(migrated?.unit).toBe('lb');
+    expect(usePRStore.getState().getExercisePR('deadlift', 'kg')).toBeNull();
   });
 });

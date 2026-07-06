@@ -17,6 +17,7 @@ import {
   View,
 } from 'react-native';
 
+import { useSettingsStore } from '@/stores/settingsStore';
 import { colors, radius, spacing, textStyles } from '@/theme';
 import { haptics } from '@/utils/haptics';
 
@@ -35,6 +36,18 @@ interface SetInputModalProps {
 
 const REPS_INPUT_ID = 'reps-input';
 const WEIGHT_INPUT_ID = 'weight-input';
+
+// Plate-math quick weights per unit (issue #42). Values follow each unit's
+// plate convention — they are NOT conversions of each other.
+const QUICK_WEIGHTS = {
+  lb: [45, 65, 95, 135, 185, 225],
+  kg: [20, 40, 60, 80, 100, 140],
+} as const;
+
+const STEPPER_INCREMENTS = {
+  lb: { small: 5, large: 10 },
+  kg: { small: 2.5, large: 5 },
+} as const;
 
 // Memoized keyboard accessory to prevent flicker
 const KeyboardAccessory = memo(({ inputId }: { inputId: string }) => (
@@ -97,8 +110,10 @@ export function SetInputModal({
   exerciseName,
   isEditing = false,
 }: SetInputModalProps) {
+  const units = useSettingsStore((state) => state.units);
   const [reps, setReps] = useState(initialReps.toString());
   const [weight, setWeight] = useState(initialWeight?.toString() ?? '');
+  const increments = STEPPER_INCREMENTS[units];
 
   useEffect(() => {
     if (visible) {
@@ -219,10 +234,16 @@ export function SetInputModal({
 
             {/* Weight Input */}
             <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>Weight (lb)</Text>
+              <Text style={styles.inputLabel}>Weight ({units})</Text>
               <View style={styles.inputRow}>
-                <StepperButton label="-10" onPress={() => adjustWeight(-10)} />
-                <StepperButton label="-5" onPress={() => adjustWeight(-5)} />
+                <StepperButton
+                  label={`-${increments.large}`}
+                  onPress={() => adjustWeight(-increments.large)}
+                />
+                <StepperButton
+                  label={`-${increments.small}`}
+                  onPress={() => adjustWeight(-increments.small)}
+                />
                 <TextInput
                   style={styles.input}
                   value={weight}
@@ -233,8 +254,14 @@ export function SetInputModal({
                   selectTextOnFocus
                   inputAccessoryViewID={WEIGHT_INPUT_ID}
                 />
-                <StepperButton label="+5" onPress={() => adjustWeight(5)} />
-                <StepperButton label="+10" onPress={() => adjustWeight(10)} />
+                <StepperButton
+                  label={`+${increments.small}`}
+                  onPress={() => adjustWeight(increments.small)}
+                />
+                <StepperButton
+                  label={`+${increments.large}`}
+                  onPress={() => adjustWeight(increments.large)}
+                />
               </View>
             </View>
 
@@ -242,7 +269,7 @@ export function SetInputModal({
             <View style={styles.quickButtonsContainer}>
               <Text style={styles.quickLabel}>Quick weight</Text>
               <View style={styles.quickButtons}>
-                {[45, 65, 95, 135, 185, 225].map((w) => (
+                {QUICK_WEIGHTS[units].map((w) => (
                   <QuickWeightButton
                     key={w}
                     weight={w}

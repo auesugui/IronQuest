@@ -11,6 +11,7 @@ export default function ProfileScreen() {
   const profile = usePlayerStore((state) => state.profile);
   const achievements = usePlayerStore((state) => state.achievements);
   const haptics = useSettingsStore((state) => state.haptics);
+  const units = useSettingsStore((state) => state.units);
   const updateSetting = useSettingsStore((state) => state.updateSetting);
 
   return (
@@ -41,6 +42,30 @@ export default function ProfileScreen() {
           value={haptics}
           onToggle={() => updateSetting('haptics', !haptics)}
         />
+
+        <View style={styles.settingSpacer} />
+
+        {/* Unit toggle (issue #42). Existing history is never converted —
+            entries keep the unit they were logged in. */}
+        <View style={styles.settingRow}>
+          <Text style={styles.settingLabel}>Weight Units</Text>
+          <View style={styles.unitPills}>
+            {(['lb', 'kg'] as const).map((u) => (
+              <Pressable
+                key={u}
+                style={[styles.unitPill, units === u && styles.unitPillActive]}
+                onPress={() => updateSetting('units', u)}
+                accessibilityRole="button"
+                accessibilityLabel={`Use ${u === 'lb' ? 'pounds' : 'kilograms'}`}
+                accessibilityState={{ selected: units === u }}
+              >
+                <Text style={[styles.unitPillText, units === u && styles.unitPillTextActive]}>
+                  {u}
+                </Text>
+              </Pressable>
+            ))}
+          </View>
+        </View>
       </View>
 
       {/* App Info */}
@@ -149,6 +174,30 @@ const styles = StyleSheet.create({
   },
   toggleKnobActive: {
     transform: [{ translateX: 20 }],
+  },
+  settingSpacer: {
+    height: spacing[2],
+  },
+  unitPills: {
+    flexDirection: 'row',
+    gap: spacing[1],
+  },
+  unitPill: {
+    paddingHorizontal: spacing[3],
+    paddingVertical: spacing[1],
+    borderRadius: 12,
+    backgroundColor: colors.background.tertiary,
+  },
+  unitPillActive: {
+    backgroundColor: colors.reward.fp,
+  },
+  unitPillText: {
+    ...textStyles.body,
+    color: colors.text.secondary,
+  },
+  unitPillTextActive: {
+    color: colors.background.primary,
+    fontWeight: '600',
   },
   versionText: {
     ...textStyles.body,

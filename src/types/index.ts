@@ -238,11 +238,15 @@ export interface NotificationSettings {
   weeklySummary: boolean;
 }
 
+// The unit a weight was logged in. Values are never converted between units —
+// a 100 lb entry and a 100 kg entry are different facts (issue #42).
+export type WeightUnit = 'lb' | 'kg';
+
 export interface Settings {
   theme: 'light' | 'dark' | 'system';
   haptics: boolean;
   notifications: NotificationSettings;
-  units: 'lb' | 'kg';
+  units: WeightUnit;
   reducedMotion: boolean;
 }
 
@@ -253,11 +257,15 @@ export interface Settings {
 export interface WeightHistoryEntry {
   weight: number;
   timestamp: string;
+  // Absent on pre-#42 entries, which were all logged in lb.
+  unit?: WeightUnit;
 }
 
 export interface ExerciseWeightHistory {
   exerciseId: string;
   lastWeight: number | null;
+  // Unit of lastWeight; absent on pre-#42 history (lb).
+  lastUnit?: WeightUnit;
   recentWeights: WeightHistoryEntry[];
   updatedAt: string;
 }

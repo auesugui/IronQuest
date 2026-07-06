@@ -6,6 +6,7 @@
 // - Weight PR: Heaviest weight lifted for an exercise
 // - Rep PR: Most reps at a specific weight for an exercise
 
+import type { WeightUnit } from '@/types';
 import { STORAGE_KEYS, appStorage } from '@/utils/storage';
 import { create } from 'zustand';
 
@@ -15,15 +16,20 @@ import { create } from 'zustand';
 
 export interface ExercisePR {
   exerciseId: string;
-  maxWeight: number; // Heaviest weight ever lifted
+  unit: WeightUnit; // PRs only compare within one unit (issue #42)
+  maxWeight: number; // Heaviest weight ever lifted (in `unit`)
   maxWeightDate: string | null; // ISO date when achieved
   maxRepsAtWeight: Record<number, number>; // weight -> max reps
   maxRepsDate: string | null; // ISO date of most recent rep PR
   totalPRs: number; // Count of all-time PRs for this exercise
 }
 
+// Records are keyed per exercise AND unit: a 100 lb bench and a 100 kg bench
+// are different records — no cross-unit comparison, no conversion.
+const recordKey = (exerciseId: string, unit: WeightUnit) => `${exerciseId}::${unit}`;
+
 export interface PRState {
-  records: Record<string, ExercisePR>; // exerciseId -> PR data
+  records: Record<string, ExercisePR>; // `${exerciseId}::${unit}` -> PR data
   recentPRs: Array<{
     exerciseId: string;
     exerciseName: string;
@@ -40,7 +46,8 @@ export interface PRActions {
   checkPR: (
     exerciseId: string,
     weight: number,
-    reps: number
+    reps: number,
+    unit?: WeightUnit
   ) => {
     isWeightPR: boolean;
     isRepPR: boolean;
@@ -52,14 +59,15 @@ export interface PRActions {
   recordPR: (
     exerciseId: string,
     weight: number,
-    reps: number
+    reps: number,
+    unit?: WeightUnit
   ) => {
     isWeightPR: boolean;
     isRepPR: boolean;
   };
 
   // Get PR data for an exercise
-  getExercisePR: (exerciseId: string) => ExercisePR | null;
+  getExercisePR: (exerciseId: string, unit?: WeightUnit) => ExercisePR | null;
 
   // Clear all PRs (for testing)
   clearAll: () => void;
@@ -92,9 +100,9 @@ const persistPR = async (state: PRState) => {
 export const usePRStore = create<PRStore>((set, get) => ({
   ...initialState,
 
-  checkPR: (exerciseId, weight, reps) => {
+  checkPR: (exerciseId, weight, reps, unit = 'lb') => {
     const records = get().records;
-    const existing = records[exerciseId];
+    const existing = records[recordKey(exerciseId, unit)];
 
     const result = {
       isWeightPR: false,
@@ -128,9 +136,9 @@ export const usePRStore = create<PRStore>((set, get) => ({
     return result;
   },
 
-  recordPR: (exerciseId, weight, reps) => {
+  recordPR: (exerciseId, weight, reps, unit = 'lb') => {
     const state = get();
-    const existing = state.records[exerciseId];
+    const existing = state.records[recordKey(exerciseId, unit)];
     const now = new Date().toISOString();
 
     const result = {
@@ -144,6 +152,7 @@ export const usePRStore = create<PRStore>((set, get) => ({
       // First time - create new record
       newRecord = {
         exerciseId,
+        unit,
         maxWeight: weight,
         maxWeightDate: weight > 0 ? now : null,
         maxRepsAtWeight: weight > 0 && reps > 0 ? { [weight]: reps } : {},
@@ -187,7 +196,7 @@ export const usePRStore = create<PRStore>((set, get) => ({
       ...state,
       records: {
         ...state.records,
-        [exerciseId]: newRecord,
+        [recordKey(exerciseId, unit)]: newRecord,
       },
       totalPRCount: state.totalPRCount + (result.isWeightPR || result.isRepPR ? 1 : 0),
     };
@@ -198,8 +207,8 @@ export const usePRStore = create<PRStore>((set, get) => ({
     return result;
   },
 
-  getExercisePR: (exerciseId) => {
-    return get().records[exerciseId] || null;
+  getExercisePR: (exerciseId, unit = 'lb') => {
+    return get().records[recordKey(exerciseId, unit)] || null;
   },
 
   clearAll: () => {
@@ -211,8 +220,18 @@ export const usePRStore = create<PRStore>((set, get) => ({
     try {
       const stored = await appStorage.getJSON<PRState>(STORAGE_KEYS.PR.FULL_STATE);
       if (stored) {
+        // Migrate pre-#42 records: keys were bare exercise ids and all
+        // weights were logged in lb. Re-key to `${exerciseId}::lb`.
+        const migrated: Record<string, ExercisePR> = {};
+        for (const [key, record] of Object.entries(stored.records || {})) {
+          if (key.includes('::')) {
+            migrated[key] = record;
+          } else {
+            migrated[recordKey(key, 'lb')] = { ...record, unit: record.unit ?? 'lb' };
+          }
+        }
         set({
-          records: stored.records || {},
+          records: migrated,
           recentPRs: stored.recentPRs || [],
           totalPRCount: stored.totalPRCount || 0,
         });
