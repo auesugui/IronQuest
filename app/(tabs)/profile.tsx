@@ -2,6 +2,7 @@
 // IronQuest Profile Tab
 // =============================================================================
 
+import { router } from 'expo-router';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { usePlayerStore, useSettingsStore } from '@/stores';
@@ -67,6 +68,22 @@ export default function ProfileScreen() {
           </View>
         </View>
       </View>
+
+      {/* Dev Panel entry — __DEV__ only, never rendered in production builds */}
+      {__DEV__ && (
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Developer</Text>
+          <Pressable
+            style={styles.settingRow}
+            onPress={() => router.push('/(tabs)/dev')}
+            accessibilityRole="button"
+            accessibilityLabel="Open dev panel"
+          >
+            <Text style={styles.settingLabel}>Dev Panel</Text>
+            <Text style={styles.settingChevron}>›</Text>
+          </Pressable>
+        </View>
+      )}
 
       {/* App Info */}
       <View style={styles.section}>
@@ -155,6 +172,10 @@ const styles = StyleSheet.create({
   settingLabel: {
     ...textStyles.body,
     color: colors.text.primary,
+  },
+  settingChevron: {
+    ...textStyles.body,
+    color: colors.text.muted,
   },
   toggle: {
     width: 44,

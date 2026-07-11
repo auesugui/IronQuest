@@ -7,6 +7,7 @@ import { Platform, Pressable, StyleSheet, Text } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { TabIcon } from '@/components/icons/TabIcon';
+import { ROUTE_TITLES } from '@/navigation/routeTitles';
 import { colors, spacing } from '@/theme';
 
 export default function TabLayout() {
@@ -79,6 +80,27 @@ export default function TabLayout() {
           headerLeft: () => (
             <Pressable
               onPress={() => (router.canGoBack() ? router.back() : router.replace('/(tabs)'))}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            >
+              <Text style={styles.headerBack}>‹ Back</Text>
+            </Pressable>
+          ),
+        }}
+      />
+      {/* __DEV__-only dev panel, reached from the Profile screen. `href: null`
+          keeps it out of the tab bar (same pattern as history). The route must
+          be registered even in production builds (expo-router auto-shows
+          unregistered files as tabs); the screen itself renders null there. */}
+      <Tabs.Screen
+        name="dev"
+        options={{
+          title: ROUTE_TITLES['(tabs)/dev'],
+          href: null,
+          headerLeft: () => (
+            <Pressable
+              onPress={() =>
+                router.canGoBack() ? router.back() : router.replace('/(tabs)/profile')
+              }
               hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
             >
               <Text style={styles.headerBack}>‹ Back</Text>

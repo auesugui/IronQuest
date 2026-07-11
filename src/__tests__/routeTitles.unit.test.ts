@@ -53,6 +53,7 @@ describe('ROUTE_TITLES (issue #24 A2)', () => {
     expect(ROUTE_TITLES['workout/loadout']).toBe('Loadout');
     expect(ROUTE_TITLES['workout/summary']).toBe('Workout Summary');
     expect(ROUTE_TITLES['workout/session']).toBe('Session');
+    expect(ROUTE_TITLES['(tabs)/dev']).toBe('Dev Panel');
   });
 
   it('is wired into the root layout (not bypassed by hardcoded strings)', () => {
