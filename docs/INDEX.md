@@ -1,6 +1,6 @@
 # Iron Quest — Documentation Index
 
-> **Version:** 2.0 + Addendum 2.1 + Amendments | **Status:** Phase 1 Implementation (in progress) | **Updated:** July 2026
+> **Version:** 2.0 + Addendum 2.1 + Amendments | **Status:** Phase 1 shipped (July 2026); Phase 2 (Pet Attachment) in progress | **Updated:** July 2026
 
 ---
 
@@ -24,6 +24,7 @@
 | | [07 — Implementation Priority](07-technical/implementation-priority.md) | P0/P1/P2 build order by phase |
 | | [07 — State Architecture](07-technical/state-architecture.md) | Zustand stores, TypeScript interfaces, selector patterns, persistence |
 | | [07 — Local Schema](07-technical/local-schema.md) | Entity schemas, AsyncStorage keys, offline-first rules, migrations |
+| | [07 — Dev Panel Spec](07-technical/dev-panel-spec.md) | `__DEV__`-gated test panel — seed pet/player/PR/history state without grinding (build map) |
 | Decisions | [08 — Decisions Log](08-decisions/decisions-log.md) | 7 resolved decisions, amendments, future ideas |
 
 ---
@@ -116,12 +117,17 @@ Ferro (Metal) → beats Flux → beats Terra → beats Ferro
 
 ## Quick-Reference: Phase Timeline
 
-| Phase | Scope | Hours | Weeks (10–15h/wk) |
-|-------|-------|-------|--------------------|
-| **1** | Tracker + Pet | ~155–205h | 10–20 weeks |
-| **2** | + Battle Tower | ~240–320h total | 16–32 weeks |
-| **3** | + Polish & Social | ~290–375h total | 19–37 weeks |
-| **4** | Expansion | Post-launch | Ongoing |
+| Phase | Scope | Status |
+|-------|-------|--------|
+| **1** | Tracker + Pet (workout logging, FP engine, pet care, SVG renderer, evolution 1–2) | ✅ Shipped July 2026 |
+| **2** | Pet Attachment — onboarding, pet types 5→3 (Ferro/Flux/Terra), avatar identity pass, celebration layer, pet-care depth, typed-FP recalibration, share cards, kg support | In progress — nearly code-complete (Ferro/Terra art pass remaining) |
+| **3** | Battle Tower + Polish — auto-battle engine, tower progression, ability system, evolution 3–4, Supabase, leaderboards, push notifications | Planned |
+| **4** | Expansion — multiple pets, PvP, custom builders, health integrations, seasonal events | Post-launch |
+
+> **Re-sequenced July 2026** (see [`AUDIT-AND-ROADMAP-2026-07.md`](../AUDIT-AND-ROADMAP-2026-07.md) §4):
+> pet attachment now precedes the Tower — *"don't build the Tower on an exploitable economy
+> and an unloved pet."* Original docs called Phase 2 = Battle Tower. Detailed scope/estimates
+> live in the audit/roadmap doc, not here.
 
 ---
 

@@ -19,6 +19,9 @@ export const ROUTE_TITLES = {
   'workout/session': 'Session',
   'workout/template/[id]': 'Template',
   'workout/template-edit/[id]': 'Edit Template',
+  // __DEV__-only hidden tab (href: null). Declared here so the title stays
+  // covered by the raw-path regression test like every other pushed route.
+  '(tabs)/dev': 'Dev Panel',
 } as const;
 
 export type RouteTitleName = keyof typeof ROUTE_TITLES;
